@@ -1,0 +1,32 @@
+﻿http://new5a69a087eff25.amolyakov.amocrm2.saas/settings/pay/
+mpdWMSVa
+
+
+Доступ на devel(10.4.0.17):
+
+login: amolyakov
+password: 123456
+
+amolyakov.amocrm2.saas                    Хост
+/var/www/users/amolyakov/account/2.0
+01z1nhm8
+
+https://git.amocrm.ru
+
+
+
+---------------------------------------------------------------------------------------
+Tools -> start SSH session
+Tools -> Deployment -> Configuration (Add)
+Tools -> Deployment -> Automatic autoapload
+SFTP
+SFTP host: amolyakov.amocrm2.saas
+Root path: /var/www/users/amolykov/account/2.0
+
+
+
+
+---------------------------------------------------------------------------------------
+amolyakov:Lat8Tin3Ton
+
+10.4.0.44

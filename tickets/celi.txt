@@ -1,0 +1,25 @@
+INTERFACE
+-------------------------------------------------------------------
+
+api/v2/application/views/twig/interface/analytics/goals/index.twig    TWIG
+api/v2/application/views/twig/interface/analytics/goals/groups.twig   TWIG
+private/reports/goals.php
+app/libs/goals/goals.php
+bitrix/components/crm/reports.goals/component.php                     COMPONENT
+bitrix/components/crm/reports.goals/templates/redesign/template.php   TEMPLATE
+--------------------------------------------------------------------------------------
+
+DASHBOARD
+-------------------------------------------------------------------
+
+api/v2/application/views/twig/interface/dashboard/widgets/goals.twig  TWIG
+bitrix/components/dashboard/index/component.php                       COMPONENT
+bitrix/components/dashboard/index/templates/redesign/template.php     TEMPLATE
+app/libs/widgets/widgets/goals.php
+---
+protected function init
+---
+app/libs/goals/goals.php
+---
+public function stat
+---

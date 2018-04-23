@@ -1,0 +1,8 @@
+<?php
+
+file_put_contents("/var/www/sata/amolyakov/account/2.0/logs.html", $this->_response . ' test');
+
+file_put_contents("/var/www/sata/amolyakov/account/2.0/logs.json", json_encode($taskList));
+file_put_contents("/var/www/sata/amolyakov/account/2.0/logs.json", json_encode($param), FILE_APPEND);
+
+file_put_contents("/var/www/sata/amolyakov/account/2.0/logs.html", "<pre>".var_export($filter,TRUE)."</pre><br>", FILE_APPEND);

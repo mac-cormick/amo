@@ -1,0 +1,14 @@
+app/libs/stats/tasks.php
+
+api/v2/application/views/twig/interface/dashboard/widgets/tasks.twig
+
+bitrix/components/tasks/list/component.php
+
+bitrix/components/dashboard/index/component.php
+
+bitrix/components/dashboard/index/templates/redesign/template.php
+-----
+CTwig::render('interface/dashboard/page.twig', $arResult['t_params']);
+-----
+
+bitrix/components/dashboard/index/langs.php

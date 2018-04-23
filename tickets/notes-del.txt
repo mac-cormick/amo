@@ -1,0 +1,17 @@
+Multiactions
+----------------------------------------------------------------------------------------------------------------------
+app/cli/mvc/models/multiactions/delete.php       ----------        public function handle_multiaction_event
+                                                                   prepare_and_delete_entities
+
+bitrix/php_interface/crm_classes/deals.php       ----------        public static function deleteDeal
+
+bitrix/php_interface/crm_classes/notes.php       ----------        public static function OnBeforeElementDelete
+																																	 public static function DeleteNote
+
+
+
+
+
+From Card
+----------------------------------------------------------------------------------------------------------------------
+app/cli/mvc/models/account/delete.php            -----------

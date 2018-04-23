@@ -1,0 +1,23 @@
+git reset --hard                                    Отмена
+ls -la                                              Нормальный вывод
+mkdir dir-name                                      Создать директорию
+rm -rf dir-name                                     Удалить
+git log --follow -p -- file                         Изменения файла(подробно)
+supervisorctl start amolyakov:                      Запуск воркеров
+              stop
+              status
+
+cp -r /var/www/sata/bpogorelov/account/2.0/app/admin/ ./
+ln -s /var/www/sata/amolyakov/account/2.0/app/admin/
+
+ssh-keygen
+git config --global user.email "amolyakov@team.amocrm.com"
+git config --global user.name "amolyakov"
+
+rm -rf group_amolyakov.conf
+
+-----------------push-----------------
+git add .
+git commit -m "fixed"
+git push origin hotfix/wbs_42794
+

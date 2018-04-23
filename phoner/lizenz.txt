@@ -1,0 +1,43 @@
+PhonerLite Lizenz
+=================
+
+Wenn nicht anders ausgewiesen, dann stehen die Dokumentation und die
+Software aus dem PhonerLite Paket unter dem Copyright von Heiko Sommerfeldt.
+
+Copyright (C) 2013 Heiko Sommerfeldt. Alle Rechte vorbehalten.
+
+
+Diese Software wird zur Verfügung gestellt, so wie sie ist, ohne
+ausdrückliche oder implizite Garantie.
+Keinesfalls ist der Autor verantwortlich für etwaigen Schaden, der durch die
+Verwendung dieser Software auftritt.
+
+Es wird allen  Nutzern des Programms bewilligt, diese Software für
+jeden möglichen Zweck einzusetzen, kommerzielle Nutzung inbegriffen.
+Veränderungen am Paketumfang und Weitergabe wird erlaubt, solange
+folgende Bedingungen erfüllt werden:
+
+1. Jegliche Weitergabe des gesamten Pakets, oder Teile daraus, muss alle
+   Angaben obiger Copyright Nennung und die Webadresse beinhalten.
+
+2. Die Herkunft der Software darf nicht falsch dargestellt werden, es
+   darf also nicht fälschlicherweise behauptet werden, der Autor dieser
+   Software zu sein.
+
+3. Veränderte Versionen müssen als solche deklariert und nicht als
+   Originalsoftware dargestellt werden.
+
+4. Jegliche Weitergabe des gesamten Pakets, oder Teile daraus, hat
+   unentgeltlich zu erfolgen. Eine kommerzielle Weitergabe ist nicht
+   ausgeschlossen, bedarf jedoch einer Rückfrage beim Autor.
+
+Copyright der benutzten Bibliotheken:
+  oSIP:    Copyright (C) 2002 Aymeric MOIZARD, http://www.osip.org
+  iLBC:    (c) 2000-2003 The iLBCfreeware.org Project, http://www.ilbcfreeware.org
+  Speex:   © 2002-2003, Jean-Marc Valin/Xiph.Org Foundation, http://www.speex.org
+  libSRTP: Copyright (c) 2001-2005 Cisco Systems, Inc.
+  OpenSSL: Copyright (c) 1998-2007 The OpenSSL Project, http://www.openssl.org
+
+Heiko Sommerfeldt
+info@phoner.de
+http://www.phonerlite.de/
