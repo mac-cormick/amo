@@ -5,6 +5,9 @@ api/v2/application/views/twig/interface/analytics/goals/index.twig    TWIG
 api/v2/application/views/twig/interface/analytics/goals/groups.twig   TWIG
 private/reports/goals.php
 app/libs/goals/goals.php
+---
+public function get                                                   SQL
+---
 bitrix/components/crm/reports.goals/component.php                     COMPONENT
 bitrix/components/crm/reports.goals/templates/redesign/template.php   TEMPLATE
 --------------------------------------------------------------------------------------

@@ -1,0 +1,3 @@
+PROMO
+-------------
+bitrix/components/qsoft/partners.add/component.php                              357 Добавление тега amoSTART

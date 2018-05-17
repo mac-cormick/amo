@@ -1,0 +1,28 @@
+ИЗМЕНЕНИЯ СДЕЛОК В КАРТОЧКЕ
+--------------------------------------
+private/detail.php
+api/v2/application/views/twig/interface/notes/types/lead_status_changed.twig     TWIG
+bitrix/components/crm/leads.edit/templates/redesign/template.php                 TEMPLATE
+bitrix/components/crm/leads.edit/component.php                                   COMPONENT    812
+app/libs/crm/notes/models/lead_status_changed_note.php                           MODEL
+frontend/js/lib/network/tags/api.js
+app/libs/mvc/controllers/application/stats/events/events_list_controller.php     get_events_of_change_status
+app/libs/events/storage/base/status_changes/base_status_changes.php              public function add
+																																								 Запись в базу при смене этапа сделки
+bitrix/php_interface/crm_classes/notes.php
+app/libs/events/handlers/events_sender.php                                       public function handle
+																																								 public function send_events
+----------------------------------------------------------------------------------------------------------------------------
+
+bitrix/components/sync/leads.update/component.php                                // добавляем теги через апи v3
+app/libs/triggers/account/events_handler.php                                     public function handle_tags_delete
+
+
+
+GEARMAN
+-------------------------------------
+app/cli/mvc/tasks/base.php
+app/cli/mvc/controllers/multiactions/base_multiaction_controller.php
+
+
+

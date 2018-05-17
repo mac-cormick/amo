@@ -1,0 +1,21 @@
+ACCOUNT
+-----------------------------
+bitrix/php_interface/crm_classes/report.php                      function OnSalePayOrderHandler
+																																 531 - апдейт сделки со сбросом флага
+																																 ------------------
+																																 static public function set_order_status_p
+																																 644 - апдейт сделки со сменой статуса "Оплачен в аванс"
+
+bitrix/components/support/orders.card/component.php              82
+
+bitrix/modules/sale/general/order.php                            function StatusOrder
+
+bitrix/php_interface/crm_classes/account.php                     function OnSaleBeforeStatusOrder
+
+bitrix/components/support/orders.card/component.php              79
+
+
+
+PROMO
+-----------------------------
+bitrix/php_interface/crm_classes/report.php                      1169 - апдейт сделки с установкой флага "Оплачен в аванс"
