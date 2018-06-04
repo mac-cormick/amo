@@ -1,0 +1,3 @@
+SELECT * FROM `amo_loss_reasons` WHERE `id` IN (4001, 4002, 4031, 4032, 4033, 4402, 4404)
+
+INSERT INTO `amo_loss_reasons` (id, account_id, name, sort, created_at, updated_at) VALUES (4479, 9394762, 'причина1', 7, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP), (4480, 9394762, 'причина2', 8, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
