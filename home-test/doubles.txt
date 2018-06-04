@@ -1,0 +1,8 @@
+frontend\js\lib\interface\leads\duplicate_search_modal.js                       ajax/v2/doubles/contacts
+app/routes/application/multiactions/all.php                                     ajax/v2/doubles/:action(/)?
+app/libs/mvc/controllers/application/multiactions/doubles.php
+
+
+
+frontend/js/lib/components/lists/actions/merge.js                               this.link = '/ajax/' + this.type + '/merge/';
+bitrix/components/crm/elements.merge.info/component.php
