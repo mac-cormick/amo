@@ -1,8 +1,5 @@
 <?php
 
-file_put_contents("/var/www/sata/amolyakov/account/2.0/logs.html", $this->_response . ' test');
-
-file_put_contents("/var/www/sata/amolyakov/account/2.0/logs.json", json_encode($taskList));
 file_put_contents("/var/www/sata/amolyakov/account/2.0/logs.json", json_encode($param), FILE_APPEND);
 
 file_put_contents("/var/www/sata/amolyakov/account/2.0/logs.html", "COMMON - <br><pre>".var_export($filter,TRUE)."</pre><br><hr>", FILE_APPEND);
@@ -15,4 +12,8 @@ http://new5a69a087eff25.amolyakov.amocrm2.saas/
 http://new5a69a087eff25.amolyakov.amocrm2.saas/bitrix/admin/index.php
 http://wwwru.amolyakov.amocrm2.saas/partners/
 
+throw new Exception('Lead ' . $lead['id'] . ' can not be moved to PAID_ON_CREDIT status. It is in AMO_LEAD_STATUS_WIN status');
+tail -f php56-fpm.log
+gearadmin --status
+gearadmin --status | column -t | grep registration
 

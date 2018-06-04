@@ -19,3 +19,20 @@ bitrix/components/support/orders.card/component.php              79
 PROMO
 -----------------------------
 bitrix/php_interface/crm_classes/report.php                      1169 - апдейт сделки с установкой флага "Оплачен в аванс"
+
+
+
+
+---------------------------------------------------------------------------
+bitrix/components/support/orders.card/component.php              if (isset($_POST['action']))
+																																 $order_object->StatusOrder($order_id, 'N');
+
+bitrix/modules/sale/general/order.php                            function StatusOrder
+                                                                 $db_events = GetModuleEvents("sale", "OnSaleBeforeStatusOrder");
+
+bitrix/php_interface/crm_classes/account.php                     function OnSaleBeforeStatusOrder
+
+
+
+
+

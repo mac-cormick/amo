@@ -13,3 +13,7 @@ amolyakov.amocrm2.saas
 amolyakov:Lat8Tin3Ton
 
 10.4.0.44
+------------------------------------
+kibana
+amocrm-support
+dhbHBcyenUjd87Nksw
