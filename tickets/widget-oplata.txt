@@ -1,0 +1,2 @@
+bitrix/components/qsoft/order.documents/component.php
+private/account/documents.php
