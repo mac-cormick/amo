@@ -1,8 +1,9 @@
 <?php
+$.post("http://testavans.amolyakov.amocrm2.saas/ajax/contacts/merge/info", {"id":[1694284,1694283]});
 
 file_put_contents("/var/www/sata/amolyakov/account/2.0/logs.json", json_encode($param), FILE_APPEND);
 
-file_put_contents("/var/www/sata/amolyakov/account/2.0/logs.html", "COMMON - <br><pre>".var_export($filter,TRUE)."</pre><br><hr>", FILE_APPEND);
+file_put_contents("/var/www/sata/amolyakov/account/2.0/logs.html", "<b>contacts - </b><br><pre>".var_export($filter,TRUE)."</pre><br><hr>", FILE_APPEND);
 
 amolyakov@devel9.srv-08.amocrm.saas:/var/www/sata/amolyakov/piper/v2/app $ ln -s /var/www/sata/amolyakov/account/2.0/app/admin/
 /var/www/sata/amolyakov/account/2.0/app/admin $ grep -r 'CRM_DO_REPORT' /.
@@ -17,3 +18,10 @@ tail -f php56-fpm.log
 gearadmin --status
 gearadmin --status | column -t | grep registration
 
+https://docs.google.com/spreadsheets/d/1dcOut86z1Lfq8oEvzQ-MBFxPog3TnDTS5WPa7ETSW48/edit?usp=sharing
+
+рассылка
+
+netsh interface ipv4 set dns "Беспроводная сеть" dhcp
+netsh interface ipv4 set dns "Беспроводная сеть" static 10.4.2.30
+netsh interface ipv4 show dnsservers "Беспроводная сеть"
