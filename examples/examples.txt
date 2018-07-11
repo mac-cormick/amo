@@ -6,17 +6,27 @@ file_put_contents("/var/www/sata/amolyakov/account/2.0/logs.json", json_encode($
 file_put_contents("/var/www/sata/amolyakov/account/2.0/logs.html", "<b>contacts - </b><br><pre>".var_export($filter,TRUE)."</pre><br><hr>", FILE_APPEND);
 
 amolyakov@devel9.srv-08.amocrm.saas:/var/www/sata/amolyakov/piper/v2/app $ ln -s /var/www/sata/amolyakov/account/2.0/app/admin/
-/var/www/sata/amolyakov/account/2.0/app/admin $ grep -r 'CRM_DO_REPORT' /.
+/var/www/sata/amolyakov/account/2.0/app/admin
 
 http://customers.amolyakov.amocrm2.saas/leads/list/
 http://new5a69a087eff25.amolyakov.amocrm2.saas/
 http://new5a69a087eff25.amolyakov.amocrm2.saas/bitrix/admin/index.php
 http://wwwru.amolyakov.amocrm2.saas/partners/
 
+PHASE
+------------------------------------------------------------------------------------------
+./bin/console customers:worker -r all -v
+
+
+
 throw new Exception('Lead ' . $lead['id'] . ' can not be moved to PAID_ON_CREDIT status. It is in AMO_LEAD_STATUS_WIN status');
 tail -f php56-fpm.log
 gearadmin --status
 gearadmin --status | column -t | grep registration
+gearadmin --status | column -t | grep amolyakov | grep customers
+gearadmin --drop-function 'amolyakov|customers.sync_contacts_tasks'
+grep -rl 'main4' /var/www/sata/amolyakov/account/2.0/*
+$ grep -r 'CRM_DO_REPORT' /.
 
 https://docs.google.com/spreadsheets/d/1dcOut86z1Lfq8oEvzQ-MBFxPog3TnDTS5WPa7ETSW48/edit?usp=sharing
 
@@ -25,3 +35,12 @@ https://docs.google.com/spreadsheets/d/1dcOut86z1Lfq8oEvzQ-MBFxPog3TnDTS5WPa7ETS
 netsh interface ipv4 set dns "Беспроводная сеть" dhcp
 netsh interface ipv4 set dns "Беспроводная сеть" static 10.4.2.30
 netsh interface ipv4 show dnsservers "Беспроводная сеть"
+
+http://amocrm2.saas/test_lead
+
+dmrodionov@team.amocrm.com
+d0de9e60172d0ace5a36bcc86e7db0d3
+
+account.events.user_add
+
+db cluster

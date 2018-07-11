@@ -1,0 +1,8 @@
+CORE
+-----------------------------------------------------------
+app/libs/crm/crud/customers.php                              public function add(array $customer)
+
+PHASE
+-----------------------------------------------------------
+CustomersBundle/Task/Customer/AccountUpdateTask.php
+$element['next_price'] = (int)$monthCount * $usersCount * $tariff_price * $account['coupon_discount'] * $discount;

@@ -1,0 +1,78 @@
+bitrix/components/crm/account.user_rights_ajax/component.php
+
+$action = $_GET['action'];
+if ($current_user_role_is_admin && $paid_props['HAS_TARIFF'] === 'Y')
+	if ($action == 'add')
+		if (новый юзер)
+		$uid = $this->_user->Add($fields);
+		$user['JUST_CREATED'] = TRUE;
+		else (user exists)
+		$user['JUST_CREATED'] = FALSE;
+
+		if (новый юзер)
+		$amomail_hooks->trigger_users_add([$add_event]);
+
+		$container['account_queue']->add(AMO_TASK_ACCOUNT_EVENTS_USER_ADD, $data);
+
+
+	elseif ($action == 'check')
+
+-----------------------------------------------------------------
+CustomersBundle/Task/Sync/SyncContactsTask.php
+
+protected function user_add
+	$customer = $this->find_by_cf($account_id, $this->cf_customers_account_id, $api::ELEMENT_CUSTOMERS);  // поиск покупателя
+	if($lead_info['name'] === self::NAME_LEAD.$account_id)                                                // поиск связанной сделки
+	$contact = $this->find_by_cf($data['id'], $this->cf_contacts_user_id, $api::ELEMENT_CONTACTS);        // поиск связанного контакта
+
+	if($contact !== FALSE)
+		$this->update_links_deals($leads, $contact);
+	else
+		$res = $api->add($api::ELEMENT_CONTACTS, [$data_for_create]);       // создается контакт
+
+	$this->update_links_customers($customers, $contact['id']);
+
+
+
+
+	----------------------------------------------------------------
+	Данные для создания контакта
+
+	$data_for_create = [
+                    'name'                => $data['name'],
+                    'linked_leads_id'     => $leads,
+                    'date_create'         => $data['date_register'],
+                    'responsible_user_id' => $responsible_user_id,
+                    'custom_fields'       => [
+                        [
+                            'id'     => $this->cf_contacts_email,
+                            'values' => [
+                                [
+                                    'value' => $data['email'],
+                                    'enum'  => $this->cf_contacts_email_enum_work,
+                                ]
+                            ]
+                        ],
+                        [
+                            'id'     => $this->cf_contacts_phone,
+                            'values' => [
+                                [
+                                    'value' => $data['work_phone'],
+                                    'enum'  => $this->cf_contacts_phone_enum_work,
+                                ],
+                                [
+                                    'value' => $data['mobile_phone'],
+                                    'enum'  => $this->cf_contacts_phone_enum_mob,
+                                ]
+                            ]
+                        ],
+                        [
+                            'id'     => $this->cf_contacts_user_id,
+                            'values' => [
+                                [
+                                    'value' => $data['id']
+                                ]
+                            ]
+                        ]
+                    ]
+                ];
