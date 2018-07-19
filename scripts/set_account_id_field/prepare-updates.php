@@ -19,6 +19,8 @@ use Cli\Params\Exceptions\Params_Validation_Exception;
 $app_path = realpath(dirname(__FILE__) . '/../../../..');
 require_once $app_path . '/bootstrap.php';
 
+define('CLI_SCRIPT_MAX_EXEC', 3 * HOUR);
+
 $container = Pimple::instance();
 $logger = $container['logger'];
 $db = $container['db_cluster'];
@@ -53,7 +55,7 @@ $limit_offset = $offset;
 
 // Формирование данных для апдейта по названиям сделок
 $chunk_count = 250;    // Количество id сущностей, передаваемых массивом вторым аргументом в $api->find(по пятьсот не отдает)
-$leads_result = true;
+$leads_result = TRUE;
 $i = 0;
 
 $check_by_company = [];
@@ -114,6 +116,7 @@ if (count($final_check_by_company) > 0) {
 				$with_companies[$comp_id][] = (int)$lead['id']; // Массив массивов компания => сделки
 			} else {
 				$without_companies[] = $lead['id']; // id сделок без компаний
+				write_to_file($will_not_update, $lead['id']);
 			}
 		}
 	}
@@ -152,10 +155,8 @@ if (count($final_check_by_company) > 0) {
 				$logger->log($added_count . ' leads added to update file');
 
 				foreach ($other_leads as $comp_id => $leads) {
-					$leads_ids = [];
 					foreach ($leads as $lead_id) {
-						$leads_ids[] = $lead_id;
-						write_to_file($will_not_update, $leads_ids);
+						write_to_file($will_not_update, $lead_id);
 						$others_count++;
 					}
 				}
@@ -196,13 +197,13 @@ function find_accounts($numbers) {
 	$in = '(' . implode(',', $numbers) . ')';
 	$sql = "SELECT IBLOCK_ELEMENT_ID FROM b_iblock_element_prop_s4 WHERE IBLOCK_ELEMENT_ID IN " . $in;
 	$resource = $db->query($sql);
-	while ($row = $resource->fetch(false)) {
+	while ($row = $resource->fetch(FALSE)) {
 		$accounts_ids[] = $row['IBLOCK_ELEMENT_ID'];  // массив id аккаунтов, найденных в таблице
 	}
 	return $accounts_ids;
 }
 
-function write_to_file($path, $data, $encode=true) {
+function write_to_file($path, $data, $encode = TRUE) {
 	if ($encode) {
 		$data = json_encode($data);
 	}

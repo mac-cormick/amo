@@ -1,0 +1,240 @@
+<?php
+
+use Cli\Helpers\Api_Client;
+use Helpers\Pimple;
+use Cli\Params\Types\Required;
+use Cli\Params\Types\Param;
+use Cli\Params\Exceptions\Params_Validation_Exception;
+
+$app_path = realpath(dirname(__FILE__) . '/../../../../..');
+$_SERVER['DOCUMENT_ROOT'] = $app_path;
+
+require_once $app_path . '/app/bootstrap.php';
+
+define('CLI_SCRIPT_MAX_EXEC', 3 * HOUR);
+
+$container = Pimple::instance();
+$logger = $container['logger'];
+$db = $container['db_cluster'];
+
+$params = new \Cli\Params\CLI_Params();
+try {
+	$params
+		->add(new Required('dir', 'd', 'path to files\' dir (examp /tmp/amol)', Param::TYPE_STRING))
+		->init();
+} catch (Params_Validation_Exception $e) {
+	$logger->error($e->getMessage() . "\n" . $params->get_info());
+	die;
+}
+
+$files_path = $params->get('dir');
+
+$doubles_file = $files_path . '/cus_contacts_doubles.txt';
+$unmerged_file = $files_path . '/cus_contacts_unmerged.txt';
+$errors_file = $files_path . '/cus_contacts_errors.txt';
+$backup_file = $files_path . '/cus_contacts_backup.txt';
+
+$curl = $container['curl'];
+$api = new Api_Client(['lang' => 'ru'], $curl);
+$api->set_auth_data('testcust1', 'amolyakov@team.amocrm.com', '58f4358fa880dba135f7a9710d6b9894e43cadc8');
+if (!$api->auth()) {
+	die("Auth error in customers\n");
+}
+
+// Распределение полей контактов на 2 типа: - одно значение, - несколько значений
+$account_info = $api->get_account();
+$contacts_custom_fields_info = $account_info['account']['custom_fields']['contacts'];
+//var_dump($contacts_custom_fields_info);die();
+$standard_fields = [];
+$multi_values_fields = [];
+
+foreach ($contacts_custom_fields_info as $field) {
+	$field_type = $field['type_id'];
+	$id = $field['id'];
+	switch ($field_type) {
+		case 1:
+		case 3:
+		case 4:
+			$standard_fields[] = $id;
+			break;
+		case 8:
+			$multi_values_fields[] = $id;
+			break;
+	}
+}
+//var_dump($standard_fields);
+//var_dump($multi_fields);die();
+
+$logger->log('Starting script execution...');
+$logger->separator();
+
+$handle = fopen($doubles_file, 'rt');
+if (!$handle) {
+	$logger->error('Opening file error');
+	die();
+}
+
+// Читаем файл построчно. Каждая строка - массив вида: ключ(user_id или email) => [айдишники дублей контактов]
+$line_get_result = TRUE;
+while ($line_get_result) {
+	$merge_data = fgets($handle);
+	if (!$merge_data && feof($handle)) {
+		fclose($update_file_open);
+		$logger->log('End of file');
+		$line_get_result = FALSE;
+		break;
+	}
+	$merge_data = json_decode($merge_data, TRUE);
+//	var_dump($merge_data);
+	$logger->separator(50);
+	$data = []; // Массив для передачи в запрос мерджа
+
+	foreach ($merge_data as $key => $entities) {
+		$logger->log(count($entities) . ' entities to merge');
+		$entities_data = $api->find('contacts', ['id' => $entities]);
+		write_to_file($backup_file, $entities_data); // Пишем исходные, чтобы можно было восстановить
+		$logger->log(count($entities_data) . ' entities found in account. Preparing merge data...');
+
+		// Сортируем элементы по last_modified по убыванию (первый элемент - последний обновленный)
+		// значения некоторых полей результирующего элемента будем брать из последего обновленного
+		$modified_dates = array_column($entities_data, 'last_modified');
+		array_multisort($modified_dates, SORT_DESC, $entities_data);
+//		var_dump($entities_data);
+
+		// Если получено меньше сущностей, чем было в файле
+		if (count($entities) !== count($entities_data)) {
+			$keys = array_diff($entities, array_column($entities_data, 'id'));
+			foreach ($keys as $key) {
+				write_to_file($unmerged_file, $key);
+			}
+		}
+
+		// Формирование массива для передачи в запрос мерджа
+		$data = [
+			'USER_LOGIN' => 'amolyakov@team.amocrm.com',               // CUSTOMERS_API_USER_LOGIN
+			'USER_HASH' => '58f4358fa880dba135f7a9710d6b9894e43cadc8'  // CUSTOMERS_API_USER_HASH
+		];
+
+//		$result_name = implode(' | ', array_column($entities_data, 'name'));
+		$last_modified_contact = $entities_data[0]; // Последний обновленный контакт из текущей группы дублей)
+		$result_name = $last_modified_contact['name'];
+		$result_user = $last_modified_contact['created_user_id'];
+		$result_company = (int)$last_modified_contact['linked_company_id'];
+
+		$data['id'] = $entities;
+		$data['result_element'] = [
+			'NAME'         => $result_name,
+			'MAIN_USER_ID' => $result_user,
+			'COMPANY_UID'  => $result_company
+		];
+
+		// Считаем количество уникальных сделок по текущим контактам (необходимо передать в запрос мерджа)
+		$all_leads = array_column($entities_data, 'linked_leads_id');
+		$leads_ids = [];
+		foreach ($all_leads as $group) {
+			if (count($group)) {
+				foreach ($group as $lead_id) {
+					$leads_ids[] = $lead_id;
+				}
+			}
+		}
+		$leads_count = count(array_unique($leads_ids));
+		if ($leads_count) {
+			$data['result_element']['LEADS'] = $leads_count;
+		}
+
+		$custom_fields_group = array_column($entities_data, 'custom_fields');
+		$fields = search_fields_values($custom_fields_group, $standard_fields);
+		if (count($fields)) {
+			foreach ($fields as $field_id => $field_value) {
+				$data['result_element']['cfv'][$field_id] = $field_value;
+			}
+		}
+
+		$multi_fields = search_fields_values($custom_fields_group, $multi_values_fields, TRUE);
+		if (count($multi_fields)) {
+			foreach ($multi_fields as $field_id => $values_groups) {
+				foreach ($contacts_custom_fields_info as $custom_field) {
+					$field_enums = [];
+					if ($custom_field['id'] == $field_id) {
+						$field_enums = $custom_field['enums'];
+						break;
+					}
+				}
+				foreach ($values_groups as $values) {
+					foreach ($values as $value) {
+						// Строка вида "{"DESCRIPTION":"WORK","VALUE":"84994994949"}"
+						$data['result_element']['cfv'][$field_id][] = '{"DESCRIPTION":"'.$field_enums[$value['enum']].'","VALUE":"'.$value['value'].'"}';
+					}
+				}
+			}
+		}
+//		var_dump($data);
+	}
+
+	// Выполнение мерджа (компонент crm/elements.merge.save)
+	$logger->log('starting merge...');
+//	$link = isset($_SERVER['DEV_ENV']) ? 'http://customersus.amocrm2.saas' : 'https://customersus.amocrm.com';
+//	$link .= '/ajax/contacts/merge/save';
+	$link = "http://testcust1.amolyakov.amocrm2.saas/ajax/contacts/merge/save";
+	$headers[] = "Accept: application/json";
+
+	//Curl options
+	$curl = curl_init();
+	curl_setopt($curl, CURLOPT_RETURNTRANSFER,TRUE);
+	curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
+	curl_setopt($curl, CURLOPT_POSTFIELDS, http_build_query($data));
+	curl_setopt($curl, CURLOPT_URL, $link);
+	curl_setopt($curl, CURLOPT_HEADER,FALSE);
+	$out = curl_exec($curl);
+	$info = curl_getinfo($curl);
+	curl_close($curl);
+	$result = json_decode($out,TRUE);
+
+//	var_dump($info);
+	var_dump($result);
+
+	if (isset($result['response']) && $result['response'] === 'success') {
+		$logger->log('SUCCESS. Result element id: ' . $result['base_id']);
+	} else {
+		$logger->error('ERROR. Results logged');
+		$log = [$info, $data];
+		write_to_file($errors_file, $log);
+	}
+}
+
+/**
+ * Поиск значений по custom_fields элементов
+ * @param  array   $custom_fields_group - массив custom_fields элементов
+ * @param  array   $fields_ids          - массив айдишников искомых полей
+ * @param  bool    $all                 - TRUE - для полей с неск. значениями, FALSE - с одним
+ * @return array   массив значений вида field_id => field_value | field_id => [[field_values], [field_values], ...]
+ */
+function search_fields_values($custom_fields_group, $fields_ids, $all = FALSE) {
+	$result = [];
+	foreach ($fields_ids as $field_id) {
+		foreach ($custom_fields_group as $custom_fields) {
+			$field = FALSE;
+			foreach ($custom_fields as $field) {
+				if ($field['id'] === $field_id) {
+					if ($all) {
+						$result[$field['id']][] = $field['values'];
+					} else {
+						$result[$field['id']] = $field['values'][0]['value'];
+						$field = TRUE; // нужно только первое значение
+					}
+					break;
+				}
+			}
+			if ($field === TRUE) break;
+		}
+	}
+	return $result;
+}
+
+function write_to_file($path, $data, $encode = TRUE) {
+	if ($encode) {
+		$data = json_encode($data);
+	}
+	file_put_contents($path, $data . "\n", FILE_APPEND);
+}

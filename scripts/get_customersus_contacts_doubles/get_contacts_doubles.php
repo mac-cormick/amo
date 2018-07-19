@@ -7,6 +7,13 @@ use Cli\Params\Types\Required;
 use Cli\Params\Types\Param;
 use Cli\Params\Exceptions\Params_Validation_Exception;
 
+/**
+ * Скрипт для поиска "дублей" контактов или сделок
+ * по значению кастомных полей контактов(email OR user ID), сделок(account ID)
+ * При наличии более 1 сущности с одинаковым значением кастомного поля
+ * записывает результат (вида custom_field_value => [$entities_ids]) в файл
+ **/
+
 $app_path = realpath(dirname(__FILE__) . '/../../../..');
 require_once $app_path . '/bootstrap.php';
 
@@ -20,83 +27,79 @@ $params = new \Cli\Params\CLI_Params();
 try {
 	$params
 		->add(new Optional('offset', 'o', 'limit_offset parameter', Param::TYPE_INT))
-		->add(new Optional('count', 'c', 'count of contacts getting by one request', Param::TYPE_INT))
+		->add(new Optional('count', 'c', 'count of entities getting by one request', Param::TYPE_INT))
 		->add(new Required('dir', 'd', 'path to files\' dir (examp /tmp/amol)', Param::TYPE_STRING))
+		->add(new Required('entity', 'e', 'entities type(leads or contacts)', Param::TYPE_STRING))
+		->add(new Required('field', 'f', 'custom field\'s id', Param::TYPE_STRING))
 		->init();
 } catch (Params_Validation_Exception $e) {
-	$logger->error($params->get_info());
+	$logger->error($e->getMessage() . "\n" . $params->get_info());
 	die;
 }
 
 $files_path = $params->get('dir');
 $offset = (int)$params->get('offset');
 $count = (int)$params->get('count');
+$field_id = (int)$params->get('field');
+$entity = $params->get('entity');
 
 $offset = ($offset > 0) ? $offset : 0;
 $count = ($count > 0) ? $count : 500;
 $limit_offset = $offset;
+if ($entity !== 'contacts' && $entity !== 'leads') {
+	$logger->error('wrong type of entities passed. leads or contacts are allowed');
+	die();
+} else {
+	$entities_type = ($entity === 'contacts') ? 'contacts' : 'leads';
+}
 
 $curl = $container['curl'];
-$api = new Api_Client(['lang' => $lang], $curl);
+$api = new Api_Client(['lang' => 'en'], $curl);
 
 if (!$api->auth()) {
 	die("Auth error in customers\n");
 }
 
-// Формирование файла дублей контактов
-$doubles_file = $files_path . '/ccd_doubles.txt';
+$doubles_file = $files_path . ($entities_type === 'contacts' ? '/cus_contacts_doubles.txt' : '/cus_leads_doubles.txt');
 
-$contacts_result = true;
-$email_field_id = AMO_DEV_MODE ? 1277144 : 66200;
-$contacts_to_check = [];
+$entities_result = TRUE;
+$values_to_check = [];
 
-while ($contacts_result) {
-	$emails_to_check = [];
-	$logger->log('getting contacts... OFFSET: ' . $limit_offset);
-	$contacts_result = $api->find('contacts', ['limit_rows' => $count, 'limit_offset' => $limit_offset]);
+while ($entities_result) {
+	$logger->log('getting entities... OFFSET: ' . $limit_offset);
+	$entities_result = $api->find($entities_type, ['limit_rows' => $count, 'limit_offset' => $limit_offset]);
 	$limit_offset += $count;
 
-	if (!$contacts_result) {
-		$logger->log('0 contacts received');
+	if (!$entities_result) {
+		$logger->log('0 entities received');
 		break;
 	}
 
-	$logger->log('Checking ' . count($contacts_result) . ' contacts...');
-	foreach ($contacts_result as $contact) {
-		$email_exists = false;
-		$email_field = $api->get_cf_values($contact, NULL, $email_field_id);
-		if (is_array($email_field)) {
-			$email = trim($email_field['value']);
-			$email_exists = true;
-			$contacts_to_check[$contact['id']] = $email;
-		}
-		if (!$email_exists) {
-			write_to_file($will_not_update, $contact['id']);
+	// Формирование массива вида custom_field_value => [$entities_ids]
+	$logger->log('Checking ' . count($entities_result) . ' entities...');
+	foreach ($entities_result as $entity) {
+		$custom_fields = $entity['custom_fields'];
+		foreach ($custom_fields as $custom_field) {
+			if ($custom_field['id'] == $field_id) {
+				$values = $custom_field['values'];
+				foreach ($values as $values_item) {
+					$value = trim($values_item['value']);
+					$values_to_check[$value][] = $entity['id'];
+				}
+			}
 		}
 	}
 }
 
-$doubles_result = [];
-
-if ($count = count($contacts_to_check)) {
-	$logger->log($count . ' contacts have E-mail. Others wrote to file.');
-	$contacts_by_email = array_count_values($contacts_to_check);  // Формирование массива элементов вида email => number_of_contacts_with_suc_email
-	foreach ($contacts_by_email as $email => $count) {
-		if ($count > 1) {
-			$doubles_keys = array_keys($contacts_to_check, $email); // id всех контактов в $contacts_to_check, меющих текущий email
-			$doubles_result[$email] = $doubles_keys;
+$logger->log('Searching for doubles...');
+if (count($values_to_check)) {
+	$i = 0;
+	foreach ($values_to_check as $value => $entities_ids) {
+		if (count($entities_ids) > 1) {
+			$i++;
+			$data = [$value => $entities_ids];
+			file_put_contents($doubles_file, json_encode($data) . "\n", FILE_APPEND);
 		}
 	}
-//	var_dump($doubles_result);
-	foreach ($doubles_result as $email => $ids) {
-		$data = [$email => $ids];
-		write_to_file($doubles_file, $data);
-	}
-}
-
-function write_to_file($path, $data, $encode=true) {
-	if ($encode) {
-		$data = json_encode($data);
-	}
-	file_put_contents($path, $data . "\n", FILE_APPEND);
+	$logger->log($i . ' groups of double entities found & wrote to file');
 }

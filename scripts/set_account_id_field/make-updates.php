@@ -11,6 +11,8 @@ use Cli\Params\Exceptions\Params_Validation_Exception;
 $app_path = realpath(dirname(__FILE__) . '/../../../..');
 require_once $app_path . '/bootstrap.php';
 
+define('CLI_SCRIPT_MAX_EXEC', 3 * HOUR);
+
 $container = Pimple::instance();
 $logger = $container['logger'];
 
@@ -44,7 +46,7 @@ $update_file = $files_path . '/update-data.txt';
 $errors_file = $files_path . '/errors.json';
 $errors_request_file = $files_path . '/error-request.json';
 
-$count = ($count > 0) ? $count : 250;
+$count = ($count > 0) ? $count : 30;
 $position = ($position > 0) ? $position : 0;
 
 $update_file_open = fopen($update_file, 'rt');
@@ -58,7 +60,7 @@ if (!$update_file_open) {
 }
 
 $lead_update_str = '';
-while ($lead_update_str !== false) {
+while ($lead_update_str !== FALSE) {
 	// Получение данных для апдейта из файла
 	$leads_update_items = [];
 
@@ -71,7 +73,7 @@ while ($lead_update_str !== false) {
 			$logger->log('End of file');
 			break;
 		}
-		$leads_update_items[] = json_decode($lead_update_str, true);
+		$leads_update_items[] = json_decode($lead_update_str, TRUE);
 	}
 	$logger->log(count($leads_update_items) . ' leads got from file');
 
@@ -105,22 +107,21 @@ while ($lead_update_str !== false) {
 	$response = $api->get_response();
 	$last_request = $api->get_last_request();
 
-	if ($resp_code !== 200) {
-		$logger->error('request error. Code ' . $resp_code);
+	if ($resp_code !== 200 && $resp_code !== 100) {
 		write_to_file($errors_file, $response);
 		write_to_file($errors_request_file, $last_request);
+		$logger->error('request error. Code ' . $error_code);
 	} elseif (count($response['response']['leads']['update']['errors']) > 0) {
 		$logger->error('update errors found');
 		write_to_file($errors_file, $response['response']['leads']['update']['errors']);
 		write_to_file($errors_request_file, $last_request);
 	} else {
-		$logger->log('updated successfully!');
+		$logger->log('updated successfully! Response code: ' . $resp_code);
 	}
 }
 
-function write_to_file($path, $data, $encode=true) {
+function write_to_file($path, $data, $encode = TRUE) {
 	if ($encode) {
 		$data = json_encode($data);
 	}
 	file_put_contents($path, $data . "\n", FILE_APPEND);
-}
