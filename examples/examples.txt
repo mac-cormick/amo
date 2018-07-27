@@ -53,3 +53,7 @@ echo $str . "\n";
 
 $json = json_encode($arr, JSON_UNESCAPED_UNICODE);
 echo $json;
+
+b_iblock_element_prop_s4         аккаунты
+b_iblock_element_prop_s7
+b_user                           юзеры
