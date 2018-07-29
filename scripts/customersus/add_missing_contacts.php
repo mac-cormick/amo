@@ -1,18 +1,12 @@
 <?php
+
 use Cli\Helpers\Api_Client;
+use Helpers\API\Account\API_Helpers;
 use Helpers\Pimple;
 use Cli\Params\Types\Required;
 use Cli\Params\Types\Optional;
 use Cli\Params\Types\Param;
 use Cli\Params\Exceptions\Params_Validation_Exception;
-
-/**
- * Логика скрипта:
- * получить группу дублей-контактов из сформированного файла
- * пройтись по полям, сформировав массив для передачи в /ajax/contacts/merge/save
- * значения полей, способных иметь несколько значений(Phone, Email, ...), объединяются в рез. элементе
- * значения полей, способных иметь только одно значение, берутся у последнего обновленного элемента из группы дублей
- */
 
 $app_path = realpath(dirname(__FILE__) . '/../../../../..');
 require_once $app_path . '/app/bootstrap.php';
@@ -26,8 +20,8 @@ $db = $container['db_cluster'];
 $params = new \Cli\Params\CLI_Params();
 try {
     $params
-        ->add(new Optional('offset', 'o', 'limit_offset parameter', Param::TYPE_INT))
-        ->add(new Optional('count', 'c', 'count of entities getting by one request', Param::TYPE_INT))
+        ->add(new Optional('line', 'l', 'update file\'s current line number', Param::TYPE_INT))
+        ->add(new Optional('count', 'c', 'count of entities updating by one request', Param::TYPE_INT))
         ->add(new Required('dir', 'd', 'path to files\' dir (examp /tmp)', Param::TYPE_STRING))
         ->init();
 } catch (Params_Validation_Exception $e) {
@@ -36,164 +30,226 @@ try {
 }
 
 $files_path = $params->get('dir');
-$offset = (int)$params->get('offset');
+$line = (int)$params->get('line');
 $count = (int)$params->get('count');
 
-$offset = ($offset > 0) ? $offset : 0;
+$line_number = ($line > 0) ? $line : 0;
 $count = ($count > 0) ? $count : 250;
 
-$account_field_empty = $files_path . '/amc_account_field_empty.txt';
-$existing_contacts = $files_path . '/amc_existing_contacts.txt';
-$new_contacts = $files_path . '/amc_new_contacts.txt';
+$diffs_file = $files_path . '/amc_diffs_file.txt';
 
 $curl = $container['curl'];
 $api = new Api_Client(['lang' => 'en'], $curl);
 if (!$api->auth()) {
-    die("Auth error in customers\n");
+    die("Auth error\n");
 }
 
-$leads_result = TRUE;
-$account_field_id = 1235545;
+// Формирование массива соответствий contact_id => user_id для всех контактов аккаунта
+$i = 0;
+$contacts_count = 250;
 $user_field_id = 1235547;
+$phone_field_id = AMO_DEV_MODE ? 1277143 : 66196;
+$email_field_id = AMO_DEV_MODE ? 1277144 : 66200;
+$contacts_by_user = [];
+$contacts_result = TRUE;
 
 do {
-    $logger->log('getting leads... OFFSET: ' . $offset);
-//	$leads = $api->find('leads', ['limit_rows' => $count, 'limit_offset' => $offset]);
-    // Получение сделок (метод find класса Api_Client возвращает удаленные сделки как актуальные)
-    $link = AMO_DEFAULT_PROTOCOL . '://' . AMO_CUSTOMERS_US_SUBDOMAIN . '.' . (AMO_DEV_MODE ? HOST_DIR_NAME . '.amocrm2.com' : 'amocrm.com');
-    $link .= '/api/v2/leads?USER_LOGIN=' . CUSTOMERS_API_USER_LOGIN . '&USER_HASH=' . CUSTOMERS_API_USER_HASH .  '&limit_rows=' . $count . '&limit_offset=' . $offset;
-    $curl->init($link);
-//	$curl->option(CURLOPT_POSTFIELDS, http_build_query($data));
-    $curl->exec();
-//	$info = $curl->info();
-    $result = json_decode($curl->result(), TRUE);
-//	var_dump($result);die();
-    $leads = $result['_embedded']['items'];
-//	var_dump(array_column($leads, 'id'));
-    $offset += $count;
-    if (!$leads) {
-        $logger->log('0 leads received');
-        $leads_result = FALSE;
-        break;
-    }
-    // Формирование массивов соответствий lead_id => account_id и lead_id => [contacts_ids]
-    $logger->log('Checking ' . count($leads). ' leads...');
-    $by_account = [];
-    $by_contacts = [];
-    $accounts_ids = [];
-    foreach ($leads as $lead) {
-        $filled = FALSE;
-        foreach ($lead['custom_fields'] as $field) {
-            if ($field['id'] == $account_field_id) {
-                $filled = TRUE;
-                $account_id = (int)$field['values'][0]['value'];
-                // Если есть дубль по полю account ID - удалим предыдущую, чтобы оставить последнюю обновленную
-                if (array_search($account_id, $by_account)) {
-                    unset ($by_account[$lead['id']]);
+    $contacts_result = $api->find('contacts', ['limit_rows' => $contacts_count, 'limit_offset' => $i * $contacts_count]);
+//    var_dump($contacts_result);
+//    var_dump(array_column($contacts_result, 'id'));
+
+    $logger->log('Checking ' . count($contacts_result) . ' contacts by user ID field');
+    foreach ($contacts_result as $contact) {
+        foreach ($contact['custom_fields'] as $field) {
+            if ($field['id'] == $user_field_id) {
+                $user_id = $field['values'][0]['value'];
+                // Если есть дубль по полю user ID - удалим предыдущий, чтобы оставить последний обновленный
+                if ($key = array_search($user_id, $contacts_by_user)) {
+                    unset ($contacts_by_user[$key]);
                 }
-                $by_account[$lead['id']] = $account_id;
-                $accounts_ids[] = $account_id;
+                $contacts_by_user[$contact['id']] = $user_id;
                 break;
             }
         }
-        if ($filled) {
-            $lead_contacts_ids = $lead['contacts']['id'];
-            $by_contacts[$lead['id']] = $lead_contacts_ids;
-            foreach ($lead_contacts_ids as $id) {
-                $contacts_ids[] = $id;
-            }
-        } else {
-            write_to_file($account_field_empty, $lead['id']);
-        }
     }
-//	var_dump($by_contacts);
-//	// Формирование массива элементов вида lead_id => [contacts_ids]
-//	$contacts = $api->get_leads_links(array_column($leads, 'id'));
-//	$by_contacts = [];
-//	$contacts_ids = [];
-//	if (count($contacts)) {
-//		foreach ($contacts as $contact) {
-//			$by_contacts[$contact['lead_id']][] = $contact['contact_id'];
-//			$contacts_ids[] = $contact['contact_id'];
-//		}
-//	}
-    // Формированеи массива соответсвий contact_id => user_id
-    $by_user = [];
-    $contacts_chunks = array_chunk($contacts_ids, $count);
-//    var_dump($contacts_chunks);
-    foreach ($contacts_chunks as $contacts_chunk) {
-        $contacts = $api->find('contacts', ['id' => $contacts_chunk]);
-//			var_dump($contacts);
-        foreach ($contacts as $contact) {
-//			$user_id = 0;
-            foreach ($contact['custom_fields'] as $field) {
-                if ($field['id'] == $user_field_id) {
-                    $user_id = (int)$field['values'][0]['value'];
-                    // Если есть дубль по полю user ID - удалим предыдущий, чтобы оставить последний обновленный
-                    if (array_search($user_id, $by_user)) {
-                        unset ($by_user[$contact['id']]);
-                    }
-                    $by_user[$contact['id']] = $user_id;
-                    break;
+
+    $i++;
+
+} while ($contacts_result);
+//var_dump($contacts_by_user);
+$logger->log(count($contacts_by_user) . ' found with unique user ID field');
+
+// получение данных по сделкам для апдейта из файла
+$diffs_file_open = fopen($diffs_file, 'rt');
+if (!$diffs_file_open) {
+    $logger->error('Opening file error');
+    die();
+}
+if ($line > 0) {
+    while (!feof($diffs_file_open) && $line--) {
+        fgets($diffs_file_open);
+    }
+}
+
+// Получение данных для апдейта из файла
+$i = 0;
+$line_get_result = TRUE;
+$doubles_by_user_id = [];
+
+while ($line_get_result) {
+    $lines_count = $line_number + $i * $count;
+    $logger->log('diffs file\'s current line number: ' . $lines_count);
+    $i++;
+    $exist_contacts = [];
+    $no_contacts = [];
+    $leads_ids = [];
+    $logger->log('Checking ' . $count . ' leads...');
+    for ($x=0; $x<$count; $x++) {
+        $update_str = fgets($diffs_file_open);
+        if (!$update_str) {
+            fclose($diffs_file_open);
+            $logger->log('End of file');
+            $line_get_result = FALSE;
+            break;
+        }
+
+        $update_item = json_decode($update_str, TRUE);
+        foreach ($update_item as $lead_id => $users_ids) {
+            $leads_ids[] = $lead_id;
+            foreach ($users_ids as $user_id) {
+                if ($contact_id = array_search($user_id, $contacts_by_user)) {
+                    $exist_contacts[$lead_id][] = $contact_id; // контакт найден в аккаунте
+                } else {
+                    $no_contacts[$lead_id][] = $user_id; // нет контакта в аккаунте, необходимо создать
                 }
             }
         }
     }
-    // формирование массива элементов вида account_id => [users_ids] по результату запроса в базу
-    $db_result = [];
-    if (count($accounts_ids)) {
-        $accounts_ids = array_map('intval', $accounts_ids);
-        $in = '(' . implode(',', $accounts_ids) . ')';
-        $sql = "SELECT PROPERTY_54 as user_id, PROPERTY_55 as account_id FROM b_iblock_element_prop_s7 WHERE PROPERTY_55 IN " . $in;
-        $logger->log($sql);
+    $logger->log(count($exist_contacts) . ' leads will be updated by adding existing contacts');
+    $logger->log(count($no_contacts) . ' leads will be updated by adding new contacts');
+//    var_dump($exist_contacts);
+//    var_dump($no_contacts);
+
+    $modified_dates = [];
+    $responsible_users = [];
+    $leads = $api->find('leads', ['id' => $leads_ids]);
+    foreach ($leads as $lead) {
+        $modified_dates[$lead['id']] = $lead['last_modified'];
+        $responsible_users[$lead['id']] = $lead['responsible_user_id'];
+    }
+
+    // прикрепление существующих в аккаунте контактов к сделкам
+    if (count($exist_contacts)) {
+        $link_contacts_data = [];
+        foreach ($exist_contacts as $lead_id => $contacts_ids) {
+            $link_contacts_data_item = [
+                'id' => $lead_id,
+                'updated_at' => API_Helpers::update_last_modified($modified_dates[$lead_id]),
+            ];
+            foreach ($contacts_ids as $contact_id) {
+                $link_contacts_data_item['contacts_id'][] = $contact_id;
+            }
+            $link_contacts_data[] = $link_contacts_data_item;
+        }
+        // var_dump($link_contacts_data);
+
+        $data = ['update' => $link_contacts_data];
+        $result = post_request('/api/v2/leads', $data);
+        $logger->log(count($result['_embedded']['items']) . ' leads updated');
+    }
+
+    // создание и прикрепление контпктов, не существующих в аккаунте
+    if (count($no_contacts)) {
+        $no_contacts_users = [];
+        foreach ($no_contacts as $lead_id => $users_ids) {
+            $no_contacts_users = array_merge($no_contacts_users, $users_ids);
+        }
+        $no_contacts_users = array_unique($no_contacts_users);
+//        var_dump($no_contacts_users);die();
+
+        $db_data = [];
+        $users_ids = array_map('intval', $no_contacts_users);
+        $in = '(' . implode(',', $users_ids) . ')';
+        $sql = "SELECT ID, NAME, LAST_NAME, EMAIL, PERSONAL_PHONE FROM b_user WHERE ID IN " . $in;
+//        $logger->log($sql);
         $resource = $db->query($sql);
         while ($row = $resource->fetch(FALSE)) {
-            $db_result[$row['account_id']][] = $row['user_id'];
+//            var_dump($row);
+            $name = isset($row['NAME']) ? $row['NAME'] : 'Name not specified';
+            $name .= isset($row['LAST_NAME']) ? ' ' . $row['LAST_NAME'] : '';
+            $db_data[$row['ID']] = [
+                'name' => $name,
+                'custom_fields' => [
+                  ['id' => $phone_field_id, 'values' => [['value' => $row['PERSONAL_PHONE'], 'enum' => 'WORK']]],
+                  ['id' => $email_field_id, 'values' => [['value' => $row['EMAIL'], 'enum' => 'WORK']]],
+                  ['id' => $user_field_id, 'values' => [['value' => $row['ID']]]]
+                ]
+            ];
         }
-    }
-    $logger->separator(50);
-    // Сравнение результатов, полученных в аккаунте и в базе
-    $acc_result = [];
-//    var_dump($by_contacts);
-//    var_dump($by_user);
-    foreach ($by_contacts as $lead_id => $contacts_ids) {
-        $users_ids = [];
-        $account_id = $by_account[$lead_id];
-        foreach ($contacts_ids as $contacts_id) {
-            $users_ids[] = $by_user[$contacts_id];
-        }
-        $acc_result[$account_id] = $users_ids; // теперь $acc_result и $db_result - массивы с одинаковыми ключами(account_id)
-    }
-//    var_dump($acc_result);
-    // получение массива вида account_id => [users_ids (отсутствующие в аккаунте, но имеющиеся в базе)]
-    $diffs = [];
-    foreach ($db_result as $account_id => $users_ids) {
-        $diffs[$account_id] = array_diff($users_ids, $acc_result[$account_id]);
-    }
-//	var_dump($diffs);
+//        var_dump($db_data);
 
-    // Формирование файлов - для привязки существующих контактов(lead_id => [contacts_ids]) и для создания и привязки новых, отсутствующих в аккаунте(lead_id => [users_ids])
-    foreach ($diffs as $account_id => $users_ids) {
-        if (count($users_ids)) {
-            $existing_contacts_data = [];
-            $new_contacts_data = [];
-            $lead_id = array_search($account_id, $by_account);
+        $create_contacts_data = [];
+        $all_users_ids = [];
+        foreach ($no_contacts as $lead_id => $users_ids) {
             foreach ($users_ids as $user_id) {
-                $contact_id = array_search($user_id, $by_user);
-                if ($contact_id) {
-                    $existing_contacts_data[$lead_id][] = $contact_id;
-                } else {
-                    $new_contacts_data[$lead_id][] = $user_id;
+                // если встретятся дубли по user_id - сохраним в отдельный массив, чтобы не создавать одинаковые контакты (потом привяжем)
+                if (in_array($user_id, $all_users_ids)) {
+                    $doubles_by_user_id[$lead_id][] = $user_id;
+                    continue;
                 }
-            }
-            if (count($existing_contacts_data)) {
-                write_to_file($existing_contacts, $existing_contacts_data);
-            } elseif (count($new_contacts_data)) {
-                write_to_file($new_contacts, $new_contacts_data);
+                $all_users_ids[] = $user_id;
+                $create_contacts_data_item = [
+                    'responsible_user_id' => $responsible_users[$lead_id],
+                    'leads_id' => [$lead_id]
+                ];
+                $create_contacts_data_item = array_merge($create_contacts_data_item, $db_data[$user_id]);
+                $create_contacts_data[] = $create_contacts_data_item;
             }
         }
+
+//        var_dump($make_contacts_data);
+
+        $data = ['add' => $create_contacts_data];
+        $result = post_request('/api/v2/contacts', $data);
+        $logger->log(count($result['_embedded']['items']) . ' contacts added to account');
     }
-} while ($leads_result);
+
+}
+
+$logger->log(count($doubles_by_user_id));
+
+function post_request($link, $data) {
+    global $curl;
+    global $logger;
+    global $files_path;
+    $errors_file = $files_path . '/amc_errors_file.txt';
+    $request_errors_data = $files_path . '/amc_request_errors_data.txt';
+
+    $link = AMO_DEFAULT_PROTOCOL . '://' . AMO_CUSTOMERS_US_SUBDOMAIN . '.' . (AMO_DEV_MODE ? HOST_DIR_NAME . '.amocrm2.com' : 'amocrm.com') . $link;
+    $link .= '?USER_LOGIN=' . CUSTOMERS_API_USER_LOGIN . '&USER_HASH=' . CUSTOMERS_API_USER_HASH;
+    $curl->init($link);
+    $curl->option(CURLOPT_POSTFIELDS, http_build_query($data));
+    $curl->exec();
+    $info = $curl->info();
+//    var_dump($info);
+    $result = json_decode($curl->result(), TRUE);
+    $curl->close();
+//    var_dump($result);
+
+    $resp_code = $info['http_code'];
+
+    if ($resp_code !== 200 && $resp_code !== 100) {
+        write_to_file($errors_file, $info);
+        write_to_file($request_errors_data, $data);
+        $logger->error('request error. Code ' . $resp_code);
+    } elseif (count($result['_embedded']['errors'])) {
+        $logger->error('request errors found and logged');
+        write_to_file($errors_file, $result['_embedded']['errors']);
+        write_to_file($request_errors_data, $data);
+    }
+
+    return $result;
+}
 
 function write_to_file($path, $data, $encode = TRUE) {
     if ($encode) {
