@@ -37,6 +37,7 @@ $line_number = ($line > 0) ? $line : 0;
 $count = ($count > 0) ? $count : 250;
 
 $diffs_file = $files_path . '/amc_diffs_file.txt';
+$db_no_user = $files_path . '/db_no_user.txt';
 
 $curl = $container['curl'];
 $api = new Api_Client(['lang' => 'en'], $curl);
@@ -44,39 +45,12 @@ if (!$api->auth()) {
     die("Auth error\n");
 }
 
-// Формирование массива соответствий contact_id => user_id для всех контактов аккаунта
-$i = 0;
-$contacts_count = 250;
 $user_field_id = 1235547;
 $phone_field_id = AMO_DEV_MODE ? 1277143 : 66196;
 $email_field_id = AMO_DEV_MODE ? 1277144 : 66200;
-$contacts_by_user = [];
 $contacts_result = TRUE;
 
-do {
-    $contacts_result = $api->find('contacts', ['limit_rows' => $contacts_count, 'limit_offset' => $i * $contacts_count]);
-//    var_dump($contacts_result);
-//    var_dump(array_column($contacts_result, 'id'));
-
-    $logger->log('Checking ' . count($contacts_result) . ' contacts by user ID field');
-    foreach ($contacts_result as $contact) {
-        foreach ($contact['custom_fields'] as $field) {
-            if ($field['id'] == $user_field_id) {
-                $user_id = $field['values'][0]['value'];
-                // Если есть дубль по полю user ID - удалим предыдущий, чтобы оставить последний обновленный
-                if ($key = array_search($user_id, $contacts_by_user)) {
-                    unset ($contacts_by_user[$key]);
-                }
-                $contacts_by_user[$contact['id']] = $user_id;
-                break;
-            }
-        }
-    }
-
-    $i++;
-
-} while ($contacts_result);
-//var_dump($contacts_by_user);
+$contacts_by_user = contacts_by_user(); // формирование массива соответствий contact_id => user_id
 $logger->log(count($contacts_by_user) . ' found with unique user ID field');
 
 // получение данных по сделкам для апдейта из файла
@@ -98,6 +72,7 @@ $doubles_by_user_id = [];
 
 while ($line_get_result) {
     $lines_count = $line_number + $i * $count;
+    $logger->separator(50);
     $logger->log('diffs file\'s current line number: ' . $lines_count);
     $i++;
     $exist_contacts = [];
@@ -127,70 +102,46 @@ while ($line_get_result) {
     }
     $logger->log(count($exist_contacts) . ' leads will be updated by adding existing contacts');
     $logger->log(count($no_contacts) . ' leads will be updated by adding new contacts');
-//    var_dump($exist_contacts);
-//    var_dump($no_contacts);
-
-    $modified_dates = [];
-    $responsible_users = [];
-    $leads = $api->find('leads', ['id' => $leads_ids]);
-    foreach ($leads as $lead) {
-        $modified_dates[$lead['id']] = $lead['last_modified'];
-        $responsible_users[$lead['id']] = $lead['responsible_user_id'];
-    }
 
     // прикрепление существующих в аккаунте контактов к сделкам
     if (count($exist_contacts)) {
-        $link_contacts_data = [];
-        foreach ($exist_contacts as $lead_id => $contacts_ids) {
-            $link_contacts_data_item = [
-                'id' => $lead_id,
-                'updated_at' => API_Helpers::update_last_modified($modified_dates[$lead_id]),
-            ];
-            foreach ($contacts_ids as $contact_id) {
-                $link_contacts_data_item['contacts_id'][] = $contact_id;
-            }
-            $link_contacts_data[] = $link_contacts_data_item;
-        }
-        // var_dump($link_contacts_data);
-
-        $data = ['update' => $link_contacts_data];
-        $result = post_request('/api/v2/leads', $data);
+        $result = link_exist_contacts($exist_contacts);
         $logger->log(count($result['_embedded']['items']) . ' leads updated');
     }
 
-    // создание и прикрепление контпктов, не существующих в аккаунте
+    // создание и прикрепление контактов, не существующих в аккаунте
     if (count($no_contacts)) {
         $no_contacts_users = [];
         foreach ($no_contacts as $lead_id => $users_ids) {
             $no_contacts_users = array_merge($no_contacts_users, $users_ids);
         }
         $no_contacts_users = array_unique($no_contacts_users);
-//        var_dump($no_contacts_users);die();
 
         $db_data = [];
         $users_ids = array_map('intval', $no_contacts_users);
         $in = '(' . implode(',', $users_ids) . ')';
         $sql = "SELECT ID, NAME, LAST_NAME, EMAIL, PERSONAL_PHONE FROM b_user WHERE ID IN " . $in;
-//        $logger->log($sql);
         $resource = $db->query($sql);
         while ($row = $resource->fetch(FALSE)) {
-//            var_dump($row);
             $name = isset($row['NAME']) ? $row['NAME'] : 'Name not specified';
             $name .= isset($row['LAST_NAME']) ? ' ' . $row['LAST_NAME'] : '';
             $db_data[$row['ID']] = [
                 'name' => $name,
                 'custom_fields' => [
-                  ['id' => $phone_field_id, 'values' => [['value' => $row['PERSONAL_PHONE'], 'enum' => 'WORK']]],
-                  ['id' => $email_field_id, 'values' => [['value' => $row['EMAIL'], 'enum' => 'WORK']]],
-                  ['id' => $user_field_id, 'values' => [['value' => $row['ID']]]]
+                    ['id' => $phone_field_id, 'values' => [['value' => $row['PERSONAL_PHONE'], 'enum' => 'WORK']]],
+                    ['id' => $email_field_id, 'values' => [['value' => $row['EMAIL'], 'enum' => 'WORK']]],
+                    ['id' => $user_field_id, 'values' => [['value' => $row['ID']]]]
                 ]
             ];
         }
-//        var_dump($db_data);
 
         $create_contacts_data = [];
         $all_users_ids = [];
         foreach ($no_contacts as $lead_id => $users_ids) {
+            $leads_ids = array_keys($no_contacts);
+            $leads_info = get_leads_info($leads_ids);
+            $responsible_users = $leads_info['responsible_users'];
+
             foreach ($users_ids as $user_id) {
                 // если встретятся дубли по user_id - сохраним в отдельный массив, чтобы не создавать одинаковые контакты (потом привяжем)
                 if (in_array($user_id, $all_users_ids)) {
@@ -202,21 +153,121 @@ while ($line_get_result) {
                     'responsible_user_id' => $responsible_users[$lead_id],
                     'leads_id' => [$lead_id]
                 ];
-                $create_contacts_data_item = array_merge($create_contacts_data_item, $db_data[$user_id]);
-                $create_contacts_data[] = $create_contacts_data_item;
+                if ($db_data[$user_id]) {
+                    $create_contacts_data_item = array_merge($create_contacts_data_item, $db_data[$user_id]);
+                    $create_contacts_data[] = $create_contacts_data_item;
+                } else {
+                    write_to_file($db_no_user, $user_id, FALSE);
+                }
             }
         }
+        $logger->log(count($doubles_by_user_id) . ' leads have repeating users & will be updated later');
 
-//        var_dump($make_contacts_data);
-
-        $data = ['add' => $create_contacts_data];
-        $result = post_request('/api/v2/contacts', $data);
-        $logger->log(count($result['_embedded']['items']) . ' contacts added to account');
+        if (count($create_contacts_data)) {
+            $data = ['add' => $create_contacts_data];
+            $result = post_request('/api/v2/contacts', $data);
+            $logger->log(count($result['_embedded']['items']) . ' contacts added to account');
+        }
     }
 
 }
 
-$logger->log(count($doubles_by_user_id));
+$logger->separator(100);
+
+if (count($doubles_by_user_id)) {
+    $contacts_by_user = contacts_by_user();  // обновляем с учетом созданных контактов
+    $logger->log('adding contacts to ' . count($doubles_by_user_id) . ' leads with repeating users...');
+
+    $update_leads = [];
+    foreach ($doubles_by_user_id as $lead_id => $users_ids) {
+        foreach ($users_ids as $user_id) {
+            $update_leads[$lead_id][] = array_search($user_id, $contacts_by_user);
+        }
+    }
+
+    $update_leads_chunks = array_chunk($update_leads, $count, TRUE);
+    foreach ($update_leads_chunks as $update_leads_chunk) {
+        $result = link_exist_contacts($update_leads_chunk);
+        $logger->log(count($result['_embedded']['items']) . ' leads updated');
+    }
+}
+
+function contacts_by_user() {
+    global $api;
+    global $user_field_id;
+    global $logger;
+    $contacts_by_user = [];
+    $i = 0;
+    $contacts_count = 250;
+
+    do {
+        $contacts_result = $api->find('contacts', ['limit_rows' => $contacts_count, 'limit_offset' => $i * $contacts_count]);
+
+        $logger->log('Checking ' . count($contacts_result) . ' contacts by user ID field');
+        foreach ($contacts_result as $contact) {
+            foreach ($contact['custom_fields'] as $field) {
+                if ($field['id'] == $user_field_id) {
+                    $user_id = $field['values'][0]['value'];
+                    // Если есть дубль по полю user ID - удалим предыдущий, чтобы оставить последний обновленный
+                    if ($key = array_search($user_id, $contacts_by_user)) {
+                        unset ($contacts_by_user[$key]);
+                    }
+                    $contacts_by_user[$contact['id']] = $user_id;
+                    break;
+                }
+            }
+        }
+
+        $i++;
+
+    } while ($contacts_result);
+
+    return $contacts_by_user;
+}
+
+function link_exist_contacts($items) {
+    $link_contacts_data = [];
+    $leads_ids = array_keys($items);
+
+    $leads_info = get_leads_info($leads_ids);
+    $modified_dates = $leads_info['modified_dates'];
+
+    foreach ($items as $lead_id => $contacts_ids) {
+        $link_contacts_data_item = [
+            'id' => $lead_id,
+            'updated_at' => API_Helpers::update_last_modified($modified_dates[$lead_id]),
+        ];
+        foreach ($contacts_ids as $contact_id) {
+            $link_contacts_data_item['contacts_id'][] = $contact_id;
+        }
+        $link_contacts_data[] = $link_contacts_data_item;
+    }
+
+    $data = ['update' => $link_contacts_data];
+    $result = post_request('/api/v2/leads', $data);
+
+    return $result;
+}
+
+function get_leads_info($leads_ids) {
+    global $api;
+    $modified_dates = [];
+    $responsible_users = [];
+
+    $leads = $api->find('leads', ['id' => $leads_ids]);
+
+    foreach ($leads as $lead) {
+        $modified_dates[$lead['id']] = $lead['last_modified'];
+        $responsible_users[$lead['id']] = $lead['responsible_user_id'];
+    }
+
+    $leads_info = [
+        'modified_dates' => $modified_dates,
+        'responsible_users' => $responsible_users
+    ];
+
+    return $leads_info;
+}
 
 function post_request($link, $data) {
     global $curl;
@@ -231,10 +282,8 @@ function post_request($link, $data) {
     $curl->option(CURLOPT_POSTFIELDS, http_build_query($data));
     $curl->exec();
     $info = $curl->info();
-//    var_dump($info);
     $result = json_decode($curl->result(), TRUE);
     $curl->close();
-//    var_dump($result);
 
     $resp_code = $info['http_code'];
 

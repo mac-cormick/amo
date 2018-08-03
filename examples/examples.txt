@@ -25,7 +25,7 @@ gearadmin --status
 gearadmin --status | column -t | grep registration
 gearadmin --status | column -t | grep amolyakov | grep customers
 gearadmin --drop-function 'amolyakov|customers.sync_contacts_tasks'
-grep -rl 'main4' /var/www/sata/amolyakov/account/2.0/*
+grep -rl 'main4' /var/www/sata/amolyakov/account/2.0/({*})
 $ grep -r 'CRM_DO_REPORT' /.
 
 https://docs.google.com/spreadsheets/d/1dcOut86z1Lfq8oEvzQ-MBFxPog3TnDTS5WPa7ETSW48/edit?usp=sharing
@@ -45,15 +45,11 @@ account.events.user_add
 
 db cluster
 
-parse_str('id%5B%5D=40322856&id%5B%5D=40322859&result_element%5BNAME%5D=merge5&result_element%5BMAIN_USER_ID%5D=958030&result_element%5BLEADS%5D=2&result_element%5Bcfv%5D%5B1279694%5D=rusia&result_element%5Bcfv%5D%5B12360281%5D=%D0%9C%D0%BE%D1%81%D0%BA%D0%B2%D0%B0&result_element%5Bcfv%5D%5B1233178%5D=CEO%2C+Top-manager&result_element%5Bcfv%5D%5B1233180%5D=Never+used%2C+first+experience&result_element%5Bcfv%5D%5B1277142%5D=%D0%B4%D0%B8%D1%80%D0%B5%D0%BA%D1%82%D0%BE%D1%80&result_element%5Bcfv%5D%5B1277143%5D%5B%5D=%7B%22DESCRIPTION%22%3A%22WORK%22%2C%22VALUE%22%3A%22890248978945%22%7D&result_element%5Bcfv%5D%5B1277143%5D%5B%5D=%7B%22DESCRIPTION%22%3A%22WORK%22%2C%22VALUE%22%3A%228092394852934%22%7D&result_element%5Bcfv%5D%5B1277143%5D%5B%5D=%7B%22DESCRIPTION%22%3A%22WORK%22%2C%22VALUE%22%3A%2289203458459834%22%7D&result_element%5Bcfv%5D%5B1277143%5D%5B%5D=%7B%22DESCRIPTION%22%3A%22WORK%22%2C%22VALUE%22%3A%2289034985787349%22%7D&result_element%5Bcfv%5D%5B1235547%5D=111&result_element%5Bcfv%5D%5B1277144%5D%5B%5D=%7B%22DESCRIPTION%22%3A%22WORK%22%2C%22VALUE%22%3A%22test%40tesat.ru%22%7D&result_element%5Bcfv%5D%5B1277144%5D%5B%5D=%7B%22DESCRIPTION%22%3A%22WORK%22%2C%22VALUE%22%3A%22test1234%40asfdaa.ru%22%7D&result_element%5BCOMPANY_UID%5D=40322860', $arr);
-print_r($arr);
-
-$str = urldecode('id%5B%5D=40322856&id%5B%5D=40322859&result_element%5BNAME%5D=merge5&result_element%5BMAIN_USER_ID%5D=958030&result_element%5BLEADS%5D=2&result_element%5Bcfv%5D%5B1279694%5D=rusia&result_element%5Bcfv%5D%5B12360281%5D=%D0%9C%D0%BE%D1%81%D0%BA%D0%B2%D0%B0&result_element%5Bcfv%5D%5B1233178%5D=CEO%2C+Top-manager&result_element%5Bcfv%5D%5B1233180%5D=Never+used%2C+first+experience&result_element%5Bcfv%5D%5B1277142%5D=%D0%B4%D0%B8%D1%80%D0%B5%D0%BA%D1%82%D0%BE%D1%80&result_element%5Bcfv%5D%5B1277143%5D%5B%5D=%7B%22DESCRIPTION%22%3A%22WORK%22%2C%22VALUE%22%3A%22890248978945%22%7D&result_element%5Bcfv%5D%5B1277143%5D%5B%5D=%7B%22DESCRIPTION%22%3A%22WORK%22%2C%22VALUE%22%3A%228092394852934%22%7D&result_element%5Bcfv%5D%5B1277143%5D%5B%5D=%7B%22DESCRIPTION%22%3A%22WORK%22%2C%22VALUE%22%3A%2289203458459834%22%7D&result_element%5Bcfv%5D%5B1277143%5D%5B%5D=%7B%22DESCRIPTION%22%3A%22WORK%22%2C%22VALUE%22%3A%2289034985787349%22%7D&result_element%5Bcfv%5D%5B1235547%5D=111&result_element%5Bcfv%5D%5B1277144%5D%5B%5D=%7B%22DESCRIPTION%22%3A%22WORK%22%2C%22VALUE%22%3A%22test%40tesat.ru%22%7D&result_element%5Bcfv%5D%5B1277144%5D%5B%5D=%7B%22DESCRIPTION%22%3A%22WORK%22%2C%22VALUE%22%3A%22test1234%40asfdaa.ru%22%7D&result_element%5BCOMPANY_UID%5D=40322860');
-echo $str . "\n";
-
 $json = json_encode($arr, JSON_UNESCAPED_UNICODE);
 echo $json;
 
 b_iblock_element_prop_s4         аккаунты
 b_iblock_element_prop_s7
 b_user                           юзеры
+
+supervisorctl update

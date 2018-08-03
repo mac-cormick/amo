@@ -1,0 +1,85 @@
+- ПРОСТАВИТЬ ПОЛЕ ACCOUNT ID СДЕЛКАМ (http://wbs.amocrm.ru/bitrix/admin/ticket_edit.php?ID=45344&lang=ru)
+
+	 1. удалить из папки /tmp файлы:
+    - update-data.txt
+    - willnot-update.json
+    - errors.json
+    - error-request.json
+
+   2. запустить первый скрипт (создание файла для апдейта):
+    php app/cli/scripts/single/set_account_id_field/prepare-updates.php -d=/tmp
+
+   3. запустить второй скрипт (апдейт):
+    php app/cli/scripts/single/set_account_id_field/make-updates.php -d=/tmp -f=1235545 -с=250
+
+   4. забрать сформированные файлы
+------------------------------------------------------------
+
+- ПРОСТАВИТЬ ПОЛЕ USER ID КОНТАКТАМ (http://wbs.amocrm.ru/bitrix/admin/ticket_edit.php?ID=45480&lang=ru)
+
+	1. удалить из папки /tmp файлы:
+    - uid-update-data.txt
+    - uid-willnot-update.json
+    - uid-errors.json
+    - uid-error-request.json
+
+  2. запустить первый скрипт (создание файла для апдейта):
+    php app/cli/scripts/single/set_user_id_field/prepare_updates.php -d=/tmp
+
+  3. запустить второй скрипт (апдейт):
+    php app/cli/scripts/single/set_user_id_field/make_updates.php -d=/tmp -f=1235547 -c=250
+
+  4. забрать сформированные файлы
+--------------------------------------------------------------
+
+- ОБЪЕДИНЕНИЕ ДУБЛЕЙ КОНТАКТОВ (http://wbs.amocrm.ru/bitrix/admin/ticket_edit.php?ID=45557&lang=ru)
+
+	1. Удалить из /tmp (если есть) файлы
+       - cus_contacts_doubles.txt
+       - cus_contacts_unmerged.txt
+       - cus_contacts_errors.txt
+       - cus_contacts_backup.txt
+
+  2. Запустить первый скрипт (создание файла для мерджа):
+     php app/cli/scripts/single/customersus_doubles/get_by_field.php -d=/tmp -f=1235547 -e=contacts
+
+  3. Запустить второй скрипт (мердж):
+     php app/cli/scripts/single/doubles_merge/script.php -d=/tmp
+
+  4. забрать сформированные файлы
+--------------------------------------------------------------
+
+- ОБЪЕДИНЕНИЕ ДУБЛЕЙ СДЕЛОК (http://wbs.amocrm.ru/bitrix/admin/ticket_edit.php?ID=45721&lang=ru)
+
+	 1. Удалить из /tmp (если есть) файлы
+       - cus_leads_doubles.txt
+       - cus_leads_unmerged.txt
+       - cus_leads_errors.txt
+       - cus_leads_backup.txt
+
+   2. Запустить первый скрипт (создание файла для мерджа):
+      php app/cli/scripts/single/customersus_doubles/get_by_field.php -d=/tmp -f=1235545 -e=leads
+
+   3. Запустить второй скрипт (мердж):
+      php app/cli/scripts/single/doubles_merge/merge_leads.php -d=/tmp
+
+   4. забрать сформированные файлы
+----------------------------------------------------------------
+
+- АКТУАЛИЗАЦИЯ СВЯЗИ СДЕЛКА-КОНТАКТ (http://wbs.amocrm.ru/bitrix/admin/ticket_edit.php?ID=45766&lang=ru)
+
+ 	1. удалить (если есть) из папки /tmp файлы:
+    - amc_diffs_file.txt
+    - amc_account_field_empty.txt
+    - db_no_user.txt
+    - amc_errors_file.txt
+    - amc_request_errors_data.txt
+
+  2. запустить первый скрипт (создание файла для апдейта):
+    php app/cli/scripts/single/customersus/find_missing_contacts.php -d=/tmp
+
+  3. запустить второй скрипт: (апдейт)
+    php app/cli/scripts/single/customersus/add_missing_contacts.php -c=50 -d=/tmp
+
+  4. забрать сформированные файлы
+

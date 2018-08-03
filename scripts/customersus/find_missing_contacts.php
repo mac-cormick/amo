@@ -1,4 +1,5 @@
 <?php
+
 use Cli\Helpers\Api_Client;
 use Helpers\Pimple;
 use Cli\Params\Types\Required;
@@ -49,30 +50,28 @@ $user_field_id = 1235547;
 
 do {
     $logger->log('getting leads... OFFSET: ' . $offset);
-//	$leads = $api->find('leads', ['limit_rows' => $count, 'limit_offset' => $offset]);
     // Получение сделок (метод find класса Api_Client возвращает удаленные сделки как актуальные)
     $link = AMO_DEFAULT_PROTOCOL . '://' . AMO_CUSTOMERS_US_SUBDOMAIN . '.' . (AMO_DEV_MODE ? HOST_DIR_NAME . '.amocrm2.com' : 'amocrm.com');
     $link .= '/api/v2/leads?USER_LOGIN=' . CUSTOMERS_API_USER_LOGIN . '&USER_HASH=' . CUSTOMERS_API_USER_HASH .  '&limit_rows=' . $count . '&limit_offset=' . $offset;
     $curl->init($link);
-//	$curl->option(CURLOPT_POSTFIELDS, http_build_query($data));
     $curl->exec();
-//	$info = $curl->info();
     $result = json_decode($curl->result(), TRUE);
-//	var_dump($result);die();
     $leads = $result['_embedded']['items'];
-//	var_dump(array_column($leads, 'id'));
     $offset += $count;
+
     if (!$leads) {
         $logger->log('0 leads received');
         $leads_result = FALSE;
         break;
     }
+
     // Формирование массивов соответствий lead_id => account_id и lead_id => [contacts_ids]
     $logger->log('Checking ' . count($leads). ' leads...');
     $by_account = [];
     $by_contacts = [];
     $accounts_ids = [];
     $contacts_ids = [];
+
     foreach ($leads as $lead) {
         $filled = FALSE;
         foreach ($lead['custom_fields'] as $field) {
@@ -95,30 +94,17 @@ do {
                 $contacts_ids[] = $id;
             }
         } else {
-            write_to_file($account_field_empty, $lead['id']);
+            write_to_file($account_field_empty, $lead['id'], FALSE);
         }
     }
 
-//	var_dump($by_contacts);
-//	// Формирование массива элементов вида lead_id => [contacts_ids]
-//	$contacts = $api->get_leads_links(array_column($leads, 'id'));
-//	$by_contacts = [];
-//	$contacts_ids = [];
-//	if (count($contacts)) {
-//		foreach ($contacts as $contact) {
-//			$by_contacts[$contact['lead_id']][] = $contact['contact_id'];
-//			$contacts_ids[] = $contact['contact_id'];
-//		}
-//	}
     // Формированеи массива соответсвий contact_id => user_id
     $by_user = [];
     $contacts_chunks = array_chunk($contacts_ids, $count);
-//    var_dump($contacts_chunks);
+
     foreach ($contacts_chunks as $contacts_chunk) {
         $contacts = $api->find('contacts', ['id' => $contacts_chunk]);
-//			var_dump($contacts);
         foreach ($contacts as $contact) {
-//			$user_id = 0;
             foreach ($contact['custom_fields'] as $field) {
                 if ($field['id'] == $user_field_id) {
                     $user_id = (int)$field['values'][0]['value'];
@@ -134,13 +120,13 @@ do {
     }
     // формирование массива элементов вида account_id => [users_ids] по результату запроса в базу
     $db_result = [];
+
     if (count($accounts_ids)) {
         $logger->log(count($accounts_ids) . ' leads found with unique account ID field');
         $logger->log('Searching users by account id for these leads in database...');
         $accounts_ids = array_map('intval', $accounts_ids);
         $in = '(' . implode(',', $accounts_ids) . ')';
         $sql = "SELECT PROPERTY_54 as user_id, PROPERTY_55 as account_id FROM b_iblock_element_prop_s7 WHERE PROPERTY_55 IN " . $in;
-//        $logger->log($sql);
         $resource = $db->query($sql);
         while ($row = $resource->fetch(FALSE)) {
             $db_result[$row['account_id']][] = $row['user_id'];
@@ -149,8 +135,7 @@ do {
 
     // Сравнение результатов, полученных в аккаунте и в базе
     $acc_result = [];
-//    var_dump($by_contacts);
-//    var_dump($by_user);
+
     foreach ($by_contacts as $lead_id => $contacts_ids) {
         $users_ids = [];
         $account_id = $by_account[$lead_id];
@@ -159,19 +144,18 @@ do {
         }
         $acc_result[$account_id] = $users_ids; // теперь $acc_result и $db_result - массивы с одинаковыми ключами(account_id)
     }
-//    var_dump($acc_result);
+
     // получение массива вида account_id => [users_ids (отсутствующие в аккаунте, но имеющиеся в базе)]
     $diffs = [];
     foreach ($db_result as $account_id => $users_ids) {
         $diffs[$account_id] = array_diff($users_ids, $acc_result[$account_id]);
     }
-    $logger->log(count($diffs) . ' leads would be written to file for update');
-    $logger->separator(50);
-//	var_dump($diffs);
 
     // Формирование файла данных для апдейта сделок
+    $i=0;
     foreach ($diffs as $account_id => $users_ids) {
         if (count($users_ids)) {
+            $i++;
             $diff_data = [];
             $lead_id = array_search($account_id, $by_account);
             foreach ($users_ids as $user_id) {
@@ -180,6 +164,8 @@ do {
             write_to_file($diffs_file, $diff_data);
         }
     }
+    $logger->log($i . ' leads would be written to file for update');
+    $logger->separator(50);
 } while ($leads_result);
 
 function write_to_file($path, $data, $encode = TRUE) {
