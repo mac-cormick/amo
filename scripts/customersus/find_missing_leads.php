@@ -7,6 +7,14 @@ use Cli\Params\Types\Optional;
 use Cli\Params\Types\Param;
 use Cli\Params\Exceptions\Params_Validation_Exception;
 
+/**
+ * Логика скрипта:
+ * формирование массива соответствий вида ID сделки => ID аккаунта(по полю account ID в сделке) для всех сделок
+ * формирование массива соответствий вида ID компании => ID аккаунта(по имени компании)
+ * получение из базы список com аккаунтов
+ * поиск по ID аккаунтов отсутствующих в аккаунте сделкок и формирование файлов для добавления сделок и компаний
+ */
+
 $app_path = realpath(dirname(__FILE__) . '/../../../../..');
 require_once $app_path . '/app/bootstrap.php';
 
@@ -58,7 +66,6 @@ $leads_by_account = [];
 do {
     $logger->log('getting leads... OFFSET: ' . $offset);
     $leads = $api->find('leads', ['limit_rows' => $count, 'limit_offset' => $offset]);
-//	var_dump($leads);
 
     $offset += $count;
 
@@ -128,7 +135,6 @@ do {
     $logger->separator(50);
 } while ($companies_result);
 
-//var_dump($companies_by_account);
 $logger->log(count($companies_by_account) . ' companies found with numbers in names');
 $logger->separator(100);
 
@@ -136,29 +142,26 @@ $logger->separator(100);
 $rows = 1000;
 $offset = 0;
 
-$pipeline_id = 852;
+$pipeline_id = AMO_DEV_MODE ? 852 : 29777;
 $success_status_id = 142;
 $closed_status_id = 143;
-$qualified_status_id = 993231;
+$new_lead_status_id = 993229;
+$responsible_user_id = AMO_DEV_MODE ? NULL : 54443;
 
 do {
-
     $sql = "
-    SELECT
-      IBLOCK_ELEMENT_ID as account_id,
-      PROPERTY_23 as subdomain,
-      PROPERTY_68 as trial_end,
-      PROPERTY_69 as trial_begin,
-      PROPERTY_78 as paid_access_begin,
-      PROPERTY_79 as paid_access_end 
-    FROM b_iblock_element_prop_s4 
-    WHERE PROPERTY_318='US' 
-    LIMIT $rows OFFSET $offset";
-//    $logger->log($sql);
+        SELECT
+            id as account_id,
+            subdomain,
+            trial_end,
+            trial_start,
+            pay_start,
+            pay_end
+        FROM amo_accounts_view
+        WHERE shard_type=2
+        LIMIT $rows OFFSET $offset";
 
-    $offset += $rows;
     $resource = $db->query($sql);
-    //var_dump($resource);die();
     $db_accounts_ids = [];
     $db_account_items = [];
 
@@ -166,19 +169,17 @@ do {
         $db_accounts_ids[]   = $row['account_id'];
         $db_account_items[$row['account_id']] = [
             'subdomain'         => $row['subdomain'],
-            'trial_begin'       => $row['trial_begin'],
+            'trial_begin'       => $row['trial_start'],
             'trial_end'         => $row['trial_end'],
-            'paid_access_begin' => $row['paid_access_begin'],
-            'paid_access_end'   => $row['paid_access_end']
+            'paid_access_begin' => $row['pay_start'],
+            'paid_access_end'   => $row['pay_end']
         ];
     }
-//    var_dump($db_result);
-    //$logger->log(count($db_result));
-    $logger->log(count($db_accounts_ids) . ' com accounts got from db');
+
+    $logger->log(count($db_accounts_ids) . ' com accounts got from db with offset: ' . $offset);
 
     // формирование файлов для создания сделок и компаний, отсутствующих в аккаунте
     $missing_leads = array_diff($db_accounts_ids, $leads_by_account);
-    //var_dump(array_shift($missing_leads));die();
     $logger->log(count($missing_leads) . ' accounts has not leads. Preparing data for creating leads and companies...');
 
     foreach ($missing_leads as $account_id) {
@@ -188,25 +189,26 @@ do {
         $paid_access_begin = $account_item['paid_access_begin'];
         $paid_access_end   = $account_item['paid_access_end'];
 
-        if (!is_null($paid_access_end)) {
+        if (!empty($paid_access_end)) {
             $status = $success_status_id;
-        } elseif (is_null($paid_access_end) && (strtotime($trial_end) > time())) {
-            $status = $qualified_status_id;
+        } elseif (empty($paid_access_end) && ($trial_end > time())) {
+            $status = $new_lead_status_id;
         } else {
             $status = $closed_status_id;
         }
 
         $lead_add_data = [
-            'name'          => 'New Account: ' . $account_id,
-            'status_id'     => $status,
-            'pipeline_id'   => $pipeline_id,
-            'custom_fields' => [
+            'name'                => 'New Account: ' . $account_id,
+            'date_create'         => $trial_begin,
+            'responsible_user_id' => $responsible_user_id,
+            'status_id'           => $status,
+            'pipeline_id'         => $pipeline_id,
+            'custom_fields'       => [
                 ['id' => $account_field_id, 'values' => [['value' => $account_id]]]
             ]
         ];
 
         if ($company_id = array_search($account_id, $companies_by_account)) {
-//            $lead_add_data['company_id'] = $company_id;
             $exist_company = [
                 'company_id' => $company_id,
                 'account_id' => $account_id
@@ -225,8 +227,8 @@ do {
 
     $logger->log('data written to files');
 
-    //var_dump($missing_leads);
     $logger->separator(50);
+    $offset += $rows;
 } while (count($db_account_items));
 
 

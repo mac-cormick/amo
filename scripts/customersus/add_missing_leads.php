@@ -19,7 +19,7 @@ $db = $container['db_cluster'];
 $params = new \Cli\Params\CLI_Params();
 try {
     $params
-		->add(new Optional('line', 'l', 'reading file current line number', Param::TYPE_INT))
+        ->add(new Optional('line', 'l', 'reading file current line number', Param::TYPE_INT))
         ->add(new Optional('count', 'c', 'count of entities updating by one request', Param::TYPE_INT))
         ->add(new Required('dir', 'd', 'path to files\' dir (examp /tmp)', Param::TYPE_STRING))
         ->init();
@@ -39,6 +39,7 @@ $offset = 0;
 $leads_add_data = $files_path . '/aml_leads_add_data.txt';
 $files[] = $errors_file = $files_path . '/aml_errors_file.txt';
 $files[] = $request_errors_data = $files_path . '/aml_request_errors_data.txt';
+$files[] = $added_leads = $files_path . '/added_leads.txt';
 
 if ($line_number === 0) {
     foreach ($files as $file) {
@@ -88,6 +89,11 @@ while ($line_get_result) {
     $result = $api->add('leads', $leads_add_items);
     $resp_code = $api->get_response_code();
     $response_info = $api->get_response_info();
+    $response = $api->get_response();
+    $added_leads_ids  = array_column($response['response']['leads']['add'], 'id');
+    if (count($added_leads_ids)) {
+        write_to_file($added_leads, $added_leads_ids); // чтобы удалить если что все, что надобавляли
+    }
 
     if ($resp_code !== 200 && $resp_code !== 100) {
         write_to_file($errors_file, $response_info);

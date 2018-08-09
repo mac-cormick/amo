@@ -53,3 +53,8 @@ b_iblock_element_prop_s7
 b_user                           юзеры
 
 supervisorctl update
+
+&USER_LOGIN=amolyakov%40team.amocrm.com&USER_HASH=3df6cc348eb5d90b1484af53eae9e0c7db81a5e1
+New Account: 17027953
+
+http://wbs.amocrm.ru/bitrix/admin/ticket_edit.php?ID=46016&lang=ru

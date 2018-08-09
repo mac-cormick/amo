@@ -1,0 +1,8 @@
+
+bitrix/components/crm/account.user_rights_ajax/component.php
+498 добавление задачи
+
+app/cli/mvc/models/account/core_events.php
+Обрабатывает событие добавления пользователя
+public function user_add
+protected function add_user_to_queue

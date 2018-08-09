@@ -41,6 +41,7 @@ $companies_add_data = $files_path . '/aml_companies_add_data.txt';
 $exist_companies_data = $files_path . '/aml_companies_exist.txt';
 $files[] = $errors_file = $files_path . '/amc_errors_file.txt';
 $files[] = $request_errors_data = $files_path . '/amc_request_errors_data.txt';
+$files[] = $added_companies = $files_path . '/added_companies.txt';
 
 if ($line_number === 0) {
     foreach ($files as $file) {
@@ -56,15 +57,17 @@ if (!$api->auth()) {
 
 $leads_result = TRUE;
 $account_field_id = 1235545;
+$responsible_user_id = AMO_DEV_MODE ? NULL : 54443;
 
 $leads_by_account = [];
+$getting_count = 250;
 
 // Формирование массива соответствий lead_id => account_id по полю account ID в сделках
 do {
     $logger->log('getting leads... OFFSET: ' . $offset);
-    $leads = $api->find('leads', ['limit_rows' => $count, 'limit_offset' => $offset]);
+    $leads = $api->find('leads', ['limit_rows' => $getting_count, 'limit_offset' => $offset]);
 
-    $offset += $count;
+    $offset += $getting_count;
 
     if (!$leads) {
         $logger->log('0 leads received');
@@ -129,27 +132,16 @@ while ($line_get_result) {
         $company_item = json_decode($next_str, TRUE);
         $company_lead = array_search($company_item['account_id'], $leads_by_account);
         $companies_add_items[] = [
-            'name'     => $company_item['name'],
-            'linked_leads_id' => $company_lead
+            'name'                => $company_item['name'],
+            'responsible_user_id' => $responsible_user_id,
+            'linked_leads_id'     => $company_lead
         ];
     }
 
     $logger->log('Adding ' . count($companies_add_items) . ' companies...');
     $result = $api->add('company', $companies_add_items);
-    $resp_code = $api->get_response_code();
-    $response_info = $api->get_response_info();
 
-    if ($resp_code !== 200 && $resp_code !== 100) {
-        write_to_file($errors_file, $response_info);
-        write_to_file($request_errors_data, $companies_add_items);
-        $logger->error('request error. Code ' . $resp_code);
-    } elseif (count($result['_embedded']['errors'])) {
-        $logger->error('request errors found and logged');
-        write_to_file($errors_file, $result['_embedded']['errors']);
-        write_to_file($request_errors_data, $companies_add_items);
-    } else {
-        $logger->log('Added successfully!');
-    }
+    process_result($result, $data);
 }
 
 $logger->separator(100);
@@ -200,19 +192,35 @@ while ($line_get_result) {
 
     $logger->log('Updating ' . count($companies_update_data) . ' companies...');
     $result = $api->update('company', $companies_update_data);
+
+    process_result($result, $data);
+}
+
+function process_result($result, $data) {
+    global $api;
+    global $logger;
+    global $errors_file;
+    global $request_errors_data;
+    global $added_companies;
+
     $resp_code = $api->get_response_code();
     $response_info = $api->get_response_info();
+    $response = $api->get_response();
+    $added_companies_ids  = array_column($response['response']['contacts']['add'], 'id');
+    if (count($added_companies_ids)) {
+        write_to_file($added_companies, $added_companies_ids); // чтобы удалить если что все, что надобавляли
+    }
 
     if ($resp_code !== 200 && $resp_code !== 100) {
         write_to_file($errors_file, $response_info);
-        write_to_file($request_errors_data, $companies_update_data);
+        write_to_file($request_errors_data, $data);
         $logger->error('request error. Code ' . $resp_code);
     } elseif (count($result['_embedded']['errors'])) {
         $logger->error('request errors found and logged');
         write_to_file($errors_file, $result['_embedded']['errors']);
-        write_to_file($request_errors_data, $companies_update_data);
+        write_to_file($request_errors_data, $data);
     } else {
-        $logger->log('Updated successfully!');
+        $logger->log('Done!');
     }
 }
 
