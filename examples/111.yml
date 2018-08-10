@@ -1,0 +1,128 @@
+# This file is auto-generated during the composer install
+parameters:
+    customers.custom_fields_map:
+        contacts:
+            user_id:
+                id: 1277732
+                name: 'User ID РІ Р‘РЈРЎ'
+            email:
+                id: 66186
+                name: Email
+                enums:
+                    work: 193200
+                    priv: 193220
+                    other: 193220
+            phone:
+                id: 66192
+                name: РўРµР»РµС„РѕРЅ
+                enums:
+                    work: 193226
+                    mob: 193220
+        customers:
+            account_id:
+                id: 1280906
+                name: 'ID Р°РєРєР°СѓРЅС‚Р°'
+            account_name:
+                id: 1281300
+                name: 'РќР°Р·РІР°РЅРёРµ Р°РєРєР°СѓРЅС‚Р°'
+            account_subdomain:
+                id: 1281301
+                name: 'РЎСѓР±РґРѕРјРµРЅ Р°РєРєР°СѓРЅС‚Р°'
+            account_trial_start:
+                id: 1281302
+                name: 'РќР°С‡Р°Р»Рѕ С‚СЂРёР°Р»СЊРЅРѕРіРѕ РїРµСЂРёРѕРґР°'
+            account_trial_end:
+                id: 1281303
+                name: 'РћРєРѕРЅС‡Р°РЅРёРµ С‚СЂРёР°Р»СЊРЅРѕРіРѕ РїРµСЂРёРѕРґР°'
+            account_pay_start:
+                id: 1281304
+                name: 'РќР°С‡Р°Р»Рѕ РїР»Р°С‚РЅРѕРіРѕ РїРµСЂРёРѕРґР°'
+            account_pay_end:
+                id: 1281305
+                name: 'РћРєРѕРЅС‡Р°РЅРёРµ РїР»Р°С‚РЅРѕРіРѕ РїРµСЂРёРѕРґР°'
+            account_tariff_name:
+                id: 1281306
+                name: 'РўР°СЂРёС„РЅС‹Р№ РїР»Р°РЅ'
+            account_lang:
+                id: 1281307
+                name: 'РЇР·С‹Рє Р°РєРєР°СѓРЅС‚Р°'
+            account_paid_users:
+                id: 1281308
+                name: 'РљРѕР»РёС‡РµСЃС‚РІРѕ РїРѕР»СЊР·РѕРІР°С‚РµР»РµР№'
+            account_currency:
+                id: 1281309
+                name: Р’Р°Р»СЋС‚Р°
+            account_timezone:
+                id: 1281310
+                name: 'Р§Р°СЃРѕРІРѕР№ РїРѕСЏСЃ'
+            account_coupon_code:
+                id: 1281311
+                name: 'РљСѓРїРѕРЅ РІ РЅР°СЃС‚СЂРѕР№РєР°С… Р°РєРєР°СѓРЅС‚Р°'
+            account_first_coupon:
+                id: 1281312
+                name: 'РљСѓРїРѕРЅ, РїРѕ РєРѕС‚РѕСЂРѕРјСѓ РёРґСѓС‚ РѕС‚С‡РёСЃР»РµРЅРёСЏ'
+            account_first_coupon_date:
+                id: 1281313
+                name: 'Р”Р°С‚Р° РїСЂРёРІСЏР·РєРё РљСѓРїРѕРЅР° Рє Р°РєРєР°СѓРЅС‚Сѓ'
+            account_reg_coupon:
+                id: 1281314
+                name: 'РљСѓРїРѕРЅ, СѓРєР°Р·Р°РЅРЅС‹Р№ РїСЂРё СЂРµРіРёСЃС‚СЂР°С†РёРё'
+            account_paid_access_balance:
+                id: 1281315
+                name: 'РћРїР»Р°С‡РµРЅРЅС‹Р№ РѕСЃС‚Р°С‚РѕРє (РґРЅРµР№)'
+            account_file_size:
+                id: 1281316
+                name: 'Р�СЃРї. РјРµСЃС‚Рѕ РїСЂРѕСЃС‚СЂР°РЅСЃС‚РІР°'
+            account_country:
+                id: 1281320
+                name: РЎС‚СЂР°РЅР°
+            account_created_partner:
+                id: 1281322
+                name: 'ID РїР°СЂС‚РЅРµСЂР°'
+            account_date_format:
+                id: 1281318
+                name: 'Р¤РѕСЂРјР°С‚ РґР°С‚С‹'
+            account_time_format:
+                id: 1281319
+                name: 'Р¤РѕСЂРјР°С‚ РІСЂРµРјРµРЅРё'
+            account_unsorted_on:
+                id: 1281321
+                name: 'РќРµСЂР°Р·РѕР±СЂР°РЅРЅРѕРµ Р°РєС‚РёРІРЅРѕ'
+            account_webhooks_on:
+                id: 1281317
+                name: Webhooks
+            account_customers_enabled:
+                id: 1281323
+                name: 'РџРµСЂРёРѕРґРёС‡РµСЃРєРёРµ РїРѕРєСѓРїРєРё'
+            account_salesbot_enabled:
+                id: 1281324
+                name: SalesBot
+            account_version:
+                id: 1281325
+                name: 'Р’РµСЂСЃРёСЏ Р°РєРєР°СѓРЅС‚Р°'
+            account_by_user_tariffing:
+                id: 1281326
+                name: 'РџРѕСЋР·РµСЂРЅР°СЏ С‚Р°СЂРёС„РёРєР°С†РёСЏ'
+            account_payed_in_advance:
+                id: 1280931
+                name: 'РћРїР»Р°С‡РµРЅ РІ Р°РІР°РЅСЃ'
+            key_client:
+                id: 1277777
+                name: 'РљР»СЋС‡РµРІРѕР№ РєР»РёРµРЅС‚'
+            rework:
+                id: 1277773
+                name: Р”РѕСЂР°Р±РѕС‚РєР°
+            integration:
+                id: 1277775
+                name: 'РљРѕРјРїР»РµРєСЃРЅРѕРµ РІРЅРµРґСЂРµРЅРёРµ'
+            zendesk_phase:
+                id: 1281328
+                name: Zendesk-РѕР±СЂР°С‰РµРЅРёСЏ
+                enums:
+                    closed: 2944149
+                    need_answer: 2944150
+                    wait_reply: 2944151
+        leads:
+            account_id:
+                id: 1276677
+                name: 'ID Р°РєРєР°СѓРЅС‚Р°'
