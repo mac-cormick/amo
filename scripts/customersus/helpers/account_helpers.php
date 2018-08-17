@@ -208,4 +208,22 @@ class Account_Helpers
 			$this->process_post_request('leads', 'update', $update_data);
 		}
 	}
+
+	/**
+	 * Получение массива ассоциаций entity_id => number_from_name(example - New Account: 1234567)
+	 * @param array $entities    Массив сущностей
+	 * @return array
+	 */
+	public function check_names($entities) {
+		$result = [];
+		foreach ($entities as $entity) {
+			$entity_name = $entity['name'];
+			$entity_id = (int)$entity['id'];
+			$number_from_name = preg_replace("/[^0-9]/", '', $entity_name);  // получение числовой части из названия сделки
+			if ($number_from_name) {
+				$result[$entity_id] = $number_from_name;
+			}
+		}
+		return $result;
+	}
 }
