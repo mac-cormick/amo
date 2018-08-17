@@ -50,7 +50,7 @@ if (!$api->auth()) {
 	die("Auth error\n");
 }
 
-$account = new Account_Helpers($logger, $api, $db, $files_path);
+$helper = new Account_Helpers($logger, $api, $db, $files_path);
 $leads_result = TRUE;
 
 do {
@@ -72,7 +72,7 @@ do {
 	}
 
 	// Формирование массива соответствий lead_id => account_id по полю account ID в сделках
-	$result = $account->field_associations($leads, AMO_CUSTOMERSUS_LEADS_CF_ACCOUNT_ID);
+	$result = $helper->make_field_associations($leads, AMO_CUSTOMERSUS_LEADS_CF_ACCOUNT_ID);
 
 	if (!empty($result['result'])) {
 		$leads_by_account = $result['result'];
@@ -81,14 +81,14 @@ do {
 
 	$empty_field_leads = $result['empty_field_entities'];
 	if (!empty($empty_field_leads)) {
-		$account->write_to_file($account_field_empty, $empty_field_leads);
+		$helper->write_to_file($account_field_empty, $empty_field_leads);
 	}
 
 	$logger->separator(50);
 	$logger->log(count($leads_by_account) . ' leads found with filled account ID field & not-win status');
 
-	if (isset($accounts_ids) && count($accounts_ids)) {
-		$db_result = $account->get_accounts_info($accounts_ids, ['IBLOCK_ELEMENT_ID', 'PROPERTY_79']);
+	if (!empty($accounts_ids)) {
+		$db_result = $helper->get_accounts_info($accounts_ids, ['IBLOCK_ELEMENT_ID', 'PROPERTY_79']);
 		if ($db_result) {
 			$db_accounts_ids = [];
 			foreach ($db_result as $item) {
@@ -104,7 +104,7 @@ do {
 		foreach ($db_accounts_ids as $id) {
 			$leads_for_update = array_keys($leads_by_account, $id);
 			foreach ($leads_for_update as $lead_id) {
-				$account->write_to_file($update_file, $lead_id, FALSE);
+				$helper->write_to_file($update_file, $lead_id, FALSE);
 			}
 		}
 		$logger->log('leads for update wrote to file');

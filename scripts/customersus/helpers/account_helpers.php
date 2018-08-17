@@ -9,9 +9,7 @@ if (!defined('BOOTSTRAP')) {
 use Libs\Db\Interfaces\Cluster;
 use Cli\Helpers\Interfaces\Logger;
 use Cli\Helpers\Api_Client;
-
-define('REQUEST_ERRORS_FILE_NAME', 'cus_request_errors_file.txt');
-define('REQUEST_ERRORS_DATA_FILE_NAME', 'cus_request_errors_data_file.txt');
+use Helpers\API\Account\API_Helpers;
 
 class Account_Helpers
 {
@@ -19,6 +17,10 @@ class Account_Helpers
 	private $_logger;
 	private $_api;
 	private $_dir;
+
+	private $_temporary_files = [];
+	private $_request_errors_file_name;
+	private $_request_errors_data_file_name;
 
 	/**
 	 * @param Logger     $logger
@@ -30,8 +32,16 @@ class Account_Helpers
 	{
 		$this->_logger = $logger;
 		$this->_api = $api;
-		$this->_dir = $dir . '/';
+		$this->_dir = $dir;
 		$this->_db = $db;
+
+		if (!empty($this->_dir)) {
+			$this->_temporary_files[] = $this->_request_errors_file_name = 'cus_request_errors_file.txt';
+			$this->_temporary_files[] = $this->_request_errors_data_file_name = 'cus_request_errors_data_file.txt';
+			foreach ($this->_temporary_files as $file_name) {
+				unlink($this->_dir . '/' . $file_name);
+			}
+		}
 	}
 
 	/**
@@ -40,7 +50,7 @@ class Account_Helpers
 	 * @param int   $field_id        ID кастомного поля
 	 * @return array
 	 */
-	public function field_associations($entities, $field_id)
+	public function make_field_associations(array $entities, $field_id)
 	{
 		$result = $field_empty = [];
 
@@ -48,10 +58,9 @@ class Account_Helpers
 			$filled = FALSE;
 			foreach ($entity['custom_fields'] as $field) {
 				if ($field['id'] == $field_id) {
-					$filled = TRUE;
-					$field_value = (int)$field['values'][0]['value'];
-					if (!empty($field_value)) {
-						$result[$entity['id']] = $field_value;
+					if (!empty($field['values'][0]['value'])) {
+						$result[$entity['id']] = (int)$field['values'][0]['value'];
+						$filled = TRUE;
 					}
 					break;
 				}
@@ -79,7 +88,7 @@ class Account_Helpers
 		if ($encode) {
 			$data = json_encode($data);
 		}
-		$path = $this->_dir . $file;
+		$path = $this->_dir . '/' . $file;
 		file_put_contents($path, $data . "\n", FILE_APPEND);
 	}
 
@@ -88,13 +97,13 @@ class Account_Helpers
 	 * @param resource $handle    указатель на файл
 	 * @param int      $count     количество получаемых строк
 	 * @param bool     $decode
-	 * @return array|bool
+	 * @return null|array
 	 */
 	public function get_file_content($handle, $count, $decode = TRUE)
 	{
 		if (feof($handle)) {
 			fclose($handle);
-			return FALSE;
+			return NULL;
 		}
 		$result = [];
 
@@ -118,21 +127,25 @@ class Account_Helpers
 	 * @param string $method    update | add
 	 * @param array  $data		массив массивов данных по обновляемым\добавляемым сущностям
 	 * @return void
+	 * @throws \Exception
 	 */
-	public function process_post_request($entity, $method, $data)
+	public function process_post_request($entity, $method, array $data)
 	{
+		if ($method !== 'add' && $method !== 'update') {
+			throw new \Exception('Unsupported type: ' . $method);
+		}
 		$result = $this->_api->$method($entity, $data);
 		$resp_code = $this->_api->get_response_code();
 		$response_info = $this->_api->get_response_info();
 
 		if ($resp_code !== 200 && $resp_code !== 100) {
-			$this->write_to_file(REQUEST_ERRORS_FILE_NAME, $response_info);
-			$this->write_to_file(REQUEST_ERRORS_DATA_FILE_NAME, $data);
+			$this->write_to_file($this->_request_errors_file_name, $response_info);
+			$this->write_to_file($this->_request_errors_data_file_name, $data);
 			$this->_logger->error('request error. Code ' . $resp_code);
 		} elseif (count($result['_embedded']['errors'])) {
 			$this->_logger->error('request errors found and logged');
-			$this->write_to_file(REQUEST_ERRORS_FILE_NAME, $result['_embedded']['errors']);
-			$this->write_to_file(REQUEST_ERRORS_DATA_FILE_NAME, $data);
+			$this->write_to_file($this->_request_errors_file_name, $result['_embedded']['errors']);
+			$this->write_to_file($this->_request_errors_data_file_name, $data);
 		} else {
 			$this->_logger->log('Updated successfully!');
 		}
@@ -140,33 +153,59 @@ class Account_Helpers
 
 	/**
 	 * Получение данных по аккаунтам из таблицы b_iblock_element_prop_s4
-	 * @param array $accounts        Массив id аккаунтов
-	 * @param array $columns         Получаемые столбцы (['IBLOCK_ELEMENT_ID', 'PROPERTY_79', ...])
-	 * @return array|bool
+	 * @param array $account_ids    Массив id аккаунтов
+	 * @param array $fields         Получаемые столбцы (['IBLOCK_ELEMENT_ID', 'PROPERTY_79', ...])
+	 * @return null|array
 	 */
-	public function get_accounts_info($accounts, $columns)
+	public function get_accounts_info(array $account_ids, array $fields)
 	{
-		$accounts_ids = array_map('intval', $accounts);
-		$in = '(' . implode(',', $accounts_ids) . ')';
-		$select = 'SELECT ' . implode(', ', $columns);
-
-		$sql = $select . " FROM b_iblock_element_prop_s4 WHERE IBLOCK_ELEMENT_ID IN " . $in;
-
-		$resource = $this->_db->query($sql);
 		$db_result = [];
 
-		$i = 0;
-		while ($row = $resource->fetch(FALSE)) {
-			foreach ($columns as $column) {
-				$db_result[$i][$column] = $row[$column];
+		if (!empty($account_ids) && !empty($fields)) {
+			$account_ids = array_map('intval', $account_ids);
+			$in = '(' . implode(',', $account_ids) . ')';
+			$select = 'SELECT ' . implode(', ', $fields);
+
+			$sql = $select . " FROM b_iblock_element_prop_s4 WHERE IBLOCK_ELEMENT_ID IN " . $in;
+
+			$resource = $this->_db->query($sql);
+
+			while ($row = $resource->fetch(FALSE)) {
+				$db_result[] = $row;
 			}
-			$i++;
 		}
 
 		if (empty($db_result)) {
 			$this->_logger->log('0 rows got');
-			return FALSE;
+			return NULL;
 		}
 		return $db_result;
+	}
+
+	/**
+	 * Перемещение сделок в другой этап
+	 * @param array $leads_ids    Массив id сделок
+	 * @param int   $status_id    id статуса
+	 * @param int   $pipeline_id  id ворнки
+	 * @return void
+	 */
+	public function move_to_status(array $leads_ids, $status_id, $pipeline_id = NULL)
+	{
+		$leads_for_update = $this->_api->find('leads', ['id' => $leads_ids]);
+
+		if (count($leads_for_update)) {
+			$this->_logger->log('Updating ' . count($leads_for_update) . ' leads...');
+			$update_data = [];
+			foreach ($leads_for_update as $lead) {
+				$update_data[] = [
+					'id' => $lead['id'],
+					'last_modified' => API_Helpers::update_last_modified($lead['last_modified']),
+					'status_id' => $status_id,
+					'pipeline_id' => $pipeline_id ?: NULL
+				];
+			}
+
+			$this->process_post_request('leads', 'update', $update_data);
+		}
 	}
 }

@@ -58,3 +58,5 @@ supervisorctl update
 New Account: 17027953
 
 http://wbs.amocrm.ru/bitrix/admin/ticket_edit.php?ID=46016&lang=ru
+
+app/libs/triggers/service/handlers/amocrm/modules/customer_creator_module.php

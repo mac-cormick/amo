@@ -1,7 +1,6 @@
 <?php
 
 use Cli\Helpers\Api_Client;
-use Helpers\API\Account\API_Helpers;
 use Helpers\Pimple;
 use Cli\Params\Types\Required;
 use Cli\Params\Types\Optional;
@@ -21,9 +20,9 @@ $db = $container['db_cluster'];
 $params = new \Cli\Params\CLI_Params();
 try {
 	$params
-		->add(new Optional('count', 'c', 'count of entities updating by one request', Param::TYPE_INT))
-		->add(new Optional('line', 'l', 'updates file\'s current cycle line number', Param::TYPE_INT))
+		->add(new Optional('count', 'c', 'entities updating by one request count', Param::TYPE_INT))
 		->add(new Required('dir', 'd', 'path to files\' dir (examp /tmp)', Param::TYPE_STRING))
+		->add(new Required('file', 'f', 'update file choice (new OR lost)', Param::TYPE_STRING))
 		->init();
 } catch (Params_Validation_Exception $e) {
 	$logger->error($e->getMessage() . "\n" . $params->get_info());
@@ -31,13 +30,14 @@ try {
 }
 
 $files_path = $params->get('dir');
+$file_choice = $params->get('file'); // выбранный файла для апдейта
 $count = (int)$params->get('count');
-$line = (int)$params->get('line');
 
 $update_count = ($count > 0) ? $count : 250;
-$line_number = ($line > 0) ? $line : 0;
+$new_lead_status_id = 993229;
 
-$update_file = $files_path . '/mpl_update_file.txt';
+$new_leads_file = 'cws_new_leads.txt';
+$lost_leads_file = 'cws_lost_leads.txt';
 
 $curl = $container['curl'];
 $api = new Api_Client(['lang' => 'en'], $curl);
@@ -45,20 +45,31 @@ if (!$api->auth()) {
 	die("Auth error\n");
 }
 
-$helper = new Account_Helpers($logger, $api, NULL, $files_path);
+$helper = new Account_Helpers($logger, $api, $db, $files_path);
+
+switch ($file_choice) {
+	case 'new':
+		$file_name = $new_leads_file;
+		$status_id = $new_lead_status_id;
+		break;
+	case 'lost':
+		$file_name = $lost_leads_file;
+		$status_id = AMO_LEAD_STATUS_LOST;
+		break;
+	default:
+		die("Unsupported file choice! new OR lost are allowed\n");
+}
+
+$update_file = $files_path . '/' . $file_name;
 
 $file_handle = fopen($update_file, 'rt');
 if (!$file_handle) {
 	$logger->error('Opening file error');
 	die();
 }
-if ($line > 0) {
-	while (!feof($file_handle) && $line--) {
-		fgets($file_handle);
-	}
-}
 
 $i = 0;
+$line_number = 0;
 $data_get_result = TRUE;
 
 while ($data_get_result) {
@@ -72,22 +83,6 @@ while ($data_get_result) {
 		break;
 	}
 
-	$logger->log('Getting ' . count($leads_ids) . ' leads...');
-	$leads_for_update = $api->find('leads', ['id' => $leads_ids]);
-
-	if (count($leads_for_update)) {
-		$logger->log('Updating ' . count($leads_for_update) . ' leads...');
-		$update_data = [];
-		foreach ($leads_for_update as $lead) {
-			$update_data[] = [
-				'id' => $lead['id'],
-				'last_modified' => API_Helpers::update_last_modified($lead['last_modified']),
-				'status_id' => AMO_LEAD_STATUS_WIN,
-				'pipeline_id' => CUSTOMERSUS_PIPELINE_ID_FIRST
-			];
-		}
-
-		$helper->process_post_request('leads', 'update', $update_data);
-		$logger->separator(50);
-	}
+	$helper->move_to_status($leads_ids, $status_id, CUSTOMERSUS_PIPELINE_ID_FIRST);
+	$logger->separator(50);
 }
