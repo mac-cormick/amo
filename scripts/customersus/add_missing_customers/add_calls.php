@@ -7,11 +7,10 @@ use Cli\Params\Types\Optional;
 use Cli\Params\Types\Param;
 use Cli\Params\Exceptions\Params_Validation_Exception;
 use Cli\Scripts\Single\Customersus\Helpers\Account_Helpers;
-use Cli\Loader\Loader;
 
 /**
  * Логика скрипта:
- * Добавить в сделки, полуенные из файла примечание типа CALL IN
+ * Добавить в сделки, полуенные из файла, примечание типа CALL IN
  * в аккаунте добавятся покупатели по событию входящего звонка(при настройке в воронке)
  */
 
@@ -20,11 +19,8 @@ require_once $app_path . '/app/bootstrap.php';
 
 define('CLI_SCRIPT_MAX_EXEC', 3 * HOUR);
 
-Loader::init_all(FALSE, AMO_CUSTOMERSUS_ACCOUNT_ID);
-
 $container = Pimple::instance();
 $logger = $container['logger'];
-$db = $container['db_cluster'];
 
 $params = new \Cli\Params\CLI_Params();
 try {
@@ -116,23 +112,14 @@ while ($data_get_result) {
         $result = $api->action('add', 'notes', $calls_add_data);
         $response = $api->get_response();
 
-        // Удаляем добавленные примечания
+        // Пишем в файл ID добавленных примечаний для удаления
         if (!empty($response['response']['notes']['add'])) {
-            sleep(3);
             $added_notes = $response['response']['notes']['add'];
             $notes_ids = array_column($added_notes, 'id');
-            $logger->log('Deleting ' . count($notes_ids) . ' CALL IN notes...');
-
-            $ids = array_map('intval', $notes_ids);
-            $helper->write_to_file($added_notes_file, $ids); // на случай если что-то не удалится
-            $in = '(' . implode(',', $ids) . ')';
-
-            $sql = "DELETE FROM qcrm_notes WHERE ACCOUNT_ID=" . AMO_CUSTOMERSUS_ACCOUNT_ID . " AND ID IN " . $in;
-            $db->query($sql);
+            $helper->write_to_file($added_notes_file, $notes_ids); // на случай если что-то не удалится
         } else {
             $helper->write_to_file($calls_add_errors_file, ['data' => $calls_add_data, 'response' => $response]);
         }
-
         $logger->separator(50);
     }
 }
