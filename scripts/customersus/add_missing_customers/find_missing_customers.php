@@ -9,10 +9,10 @@ use Cli\Params\Exceptions\Params_Validation_Exception;
 use Cli\Scripts\Single\Customersus\Helpers\Account_Helpers;
 
 /**
- * Проходит по сделкам в этапе "Успешно реализовано" и проверяет
- * по полю account ID наличие оплаченного периода в аккаунтах
- * формирует файл id сделок без оплаты но с текущим триалом(для переноса в статус "New Leads") и
- * файл id сделок без оплаты с оконченным триалом(для переноса в статус "Закрыто и не реализовано")
+ * Логика скрипта:
+ * пройтись по всем покупателям, формируя массив соответствий вида customer_id => account_id (по полю account ID в покупателе(предварительно все заполнены))
+ * пройтись по сделкам(по $count шт) в успешном статусе, проверяя по полю account ID в сделке наличие покупателя с таким же значением аналогичного поля
+ * ID сделок, по которым не найден покупатель - записать в файл
  */
 
 $app_path = realpath(dirname(__FILE__) . '/../../../../../..');
@@ -56,17 +56,20 @@ if (!$api->auth()) {
 
 $helper = new Account_Helpers($logger, $api, NULL, $files_path);
 
+$customers_account_field_id = 1235625;
 $customers_by_account = [];
 $logger->log('Checking existing customers...');
+
 do {
     $customers = $api->find('customers', ['limit_rows' => $count, 'limit_offset' => $offset]);
     $offset += $count;
-//    var_dump($customers);die();
     if ($customers) {
-        $customers_by_account += $helper->check_names($customers);
+        // Формирование массива соответствий customer_id => account_id (по полю account ID)
+        $result = $helper->make_field_associations($customers, $customers_account_field_id);
+        $customers_by_account += $result['result'];
     }
 } while ($customers);
-$logger->log(count($customers_by_account) . ' customers found with numbers in names');
+$logger->log(count($customers_by_account) . ' customers found with filled account ID field');
 $logger->separator(100);
 
 $offset = 0;
@@ -80,12 +83,12 @@ do {
     }
     $offset += $count;
 
+    // Формирование массива соответствий lead_id => account_id (по полю account ID)
     $result = $helper->make_field_associations($leads, AMO_CUSTOMERSUS_LEADS_CF_ACCOUNT_ID);
     $leads_by_account = $result['result'];
 
     if (!empty($leads_by_account)) {
         $logger->log(count($leads_by_account) . ' leads have filled account ID field. Looking for customers...');
-//        $accounts_ids = array_unique(array_values($leads_by_account));
     } else {
         $logger->log('0 leads have filled account ID field');
         continue;
@@ -95,11 +98,6 @@ do {
     if (!empty($leads_without_customers)) {
         $logger->log(count($leads_without_customers) . ' Leads haven\'t customers in account. Writing data to file...');
         foreach ($leads_without_customers as $lead_id => $account_id) {
-//            $add_call_data = [
-//                'element_id'   => $lead_id,
-//                'element_type' => 2,
-//                'note_type'    => 10
-//            ];
             $helper->write_to_file($update_file, [$lead_id => $account_id]);
         }
     } else {
