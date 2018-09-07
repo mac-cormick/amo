@@ -23,6 +23,7 @@ try {
         ->add(new Optional('line', 'l', 'update file\'s current line number', Param::TYPE_INT))
         ->add(new Optional('count', 'c', 'count of entities updating by one request', Param::TYPE_INT))
         ->add(new Required('dir', 'd', 'path to files\' dir (examp /tmp)', Param::TYPE_STRING))
+        ->add(new Required('entity', 'e', 'entity type(leads or customers)', Param::TYPE_STRING))
         ->init();
 } catch (Params_Validation_Exception $e) {
     $logger->error($e->getMessage() . "\n" . $params->get_info());
@@ -30,8 +31,13 @@ try {
 }
 
 $files_path = $params->get('dir');
+$entity_type = $params->get('entity');
 $line = (int)$params->get('line');
 $count = (int)$params->get('count');
+
+if ($entity_type !== 'leads' && $entity_type !== 'customers') {
+    die("unsupported entity type parameter! leads or customers allowed\n");
+}
 
 $line_number = ($line > 0) ? $line : 0;
 $count = ($count > 0) ? $count : 250;
@@ -77,8 +83,8 @@ while ($line_get_result) {
     $i++;
     $exist_contacts = [];
     $no_contacts = [];
-    $leads_ids = [];
-    $logger->log('Checking ' . $count . ' leads...');
+    $entities_ids = [];
+    $logger->log('Checking ' . $count . ' entities...');
     for ($x=0; $x<$count; $x++) {
         $update_str = fgets($diffs_file_open);
         if (!$update_str) {
@@ -89,30 +95,30 @@ while ($line_get_result) {
         }
 
         $update_item = json_decode($update_str, TRUE);
-        foreach ($update_item as $lead_id => $users_ids) {
-            $leads_ids[] = $lead_id;
+        foreach ($update_item as $entity_id => $users_ids) {
+            $entities_ids[] = $entity_id;
             foreach ($users_ids as $user_id) {
                 if ($contact_id = array_search($user_id, $contacts_by_user)) {
-                    $exist_contacts[$lead_id][] = $contact_id; // контакт найден в аккаунте
+                    $exist_contacts[$entity_id][] = $contact_id; // контакт найден в аккаунте
                 } else {
-                    $no_contacts[$lead_id][] = $user_id; // нет контакта в аккаунте, необходимо создать
+                    $no_contacts[$entity_id][] = $user_id; // нет контакта в аккаунте, необходимо создать
                 }
             }
         }
     }
-    $logger->log(count($exist_contacts) . ' leads will be updated by adding existing contacts');
-    $logger->log(count($no_contacts) . ' leads will be updated by adding new contacts');
+    $logger->log(count($exist_contacts) . ' entities will be updated by adding existing contacts');
+    $logger->log(count($no_contacts) . ' entities will be updated by adding new contacts');
 
     // прикрепление существующих в аккаунте контактов к сделкам
     if (count($exist_contacts)) {
-        $result = link_exist_contacts($exist_contacts);
-        $logger->log(count($result['_embedded']['items']) . ' leads updated');
+        $result = link_exist_contacts($exist_contacts, $entity_type);
+        $logger->log(count($result['_embedded']['items']) . ' entities updated');
     }
 
     // создание и прикрепление контактов, не существующих в аккаунте
     if (count($no_contacts)) {
         $no_contacts_users = [];
-        foreach ($no_contacts as $lead_id => $users_ids) {
+        foreach ($no_contacts as $entity_id => $users_ids) {
             $no_contacts_users = array_merge($no_contacts_users, $users_ids);
         }
         $no_contacts_users = array_unique($no_contacts_users);
@@ -137,21 +143,21 @@ while ($line_get_result) {
 
         $create_contacts_data = [];
         $all_users_ids = [];
-        foreach ($no_contacts as $lead_id => $users_ids) {
-            $leads_ids = array_keys($no_contacts);
-            $leads_info = get_leads_info($leads_ids);
-            $responsible_users = $leads_info['responsible_users'];
+        foreach ($no_contacts as $entity_id => $users_ids) {
+            $entities_ids = array_keys($no_contacts);
+            $entities_info = get_entities_info($entities_ids, $entity_type);
+            $responsible_users = $entities_info['responsible_users'];
 
             foreach ($users_ids as $user_id) {
                 // если встретятся дубли по user_id - сохраним в отдельный массив, чтобы не создавать одинаковые контакты (потом привяжем)
                 if (in_array($user_id, $all_users_ids)) {
-                    $doubles_by_user_id[$lead_id][] = $user_id;
+                    $doubles_by_user_id[$entity_id][] = $user_id;
                     continue;
                 }
                 $all_users_ids[] = $user_id;
                 $create_contacts_data_item = [
-                    'responsible_user_id' => $responsible_users[$lead_id],
-                    'leads_id' => [$lead_id]
+                    'responsible_user_id' => $responsible_users[$entity_id],
+                    $entity_type . '_id' => [$entity_id]
                 ];
                 if ($db_data[$user_id]) {
                     $create_contacts_data_item = array_merge($create_contacts_data_item, $db_data[$user_id]);
@@ -161,7 +167,7 @@ while ($line_get_result) {
                 }
             }
         }
-        $logger->log(count($doubles_by_user_id) . ' leads have repeating users & will be updated later');
+        $logger->log(count($doubles_by_user_id) . ' entities have repeating users & will be updated later');
 
         if (count($create_contacts_data)) {
             $data = ['add' => $create_contacts_data];
@@ -176,19 +182,19 @@ $logger->separator(100);
 
 if (count($doubles_by_user_id)) {
     $contacts_by_user = contacts_by_user();  // обновляем с учетом созданных контактов
-    $logger->log('adding contacts to ' . count($doubles_by_user_id) . ' leads with repeating users...');
+    $logger->log('adding contacts to ' . count($doubles_by_user_id) . ' entities with repeating users...');
 
-    $update_leads = [];
-    foreach ($doubles_by_user_id as $lead_id => $users_ids) {
+    $update_entities = [];
+    foreach ($doubles_by_user_id as $entity_id => $users_ids) {
         foreach ($users_ids as $user_id) {
-            $update_leads[$lead_id][] = array_search($user_id, $contacts_by_user);
+            $update_entities[$entity_id][] = array_search($user_id, $contacts_by_user);
         }
     }
 
-    $update_leads_chunks = array_chunk($update_leads, $count, TRUE);
-    foreach ($update_leads_chunks as $update_leads_chunk) {
-        $result = link_exist_contacts($update_leads_chunk);
-        $logger->log(count($result['_embedded']['items']) . ' leads updated');
+    $update_entities_chunks = array_chunk($update_entities, $count, TRUE);
+    foreach ($update_entities_chunks as $update_entities_chunk) {
+        $result = link_exist_contacts($update_entities_chunk, $entity_type);
+        $logger->log(count($result['_embedded']['items']) . ' entities updated');
     }
 }
 
@@ -225,17 +231,17 @@ function contacts_by_user() {
     return $contacts_by_user;
 }
 
-function link_exist_contacts($items) {
+function link_exist_contacts($items, $entity_type) {
     $link_contacts_data = [];
-    $leads_ids = array_keys($items);
+    $entities_ids = array_keys($items);
 
-    $leads_info = get_leads_info($leads_ids);
-    $modified_dates = $leads_info['modified_dates'];
+    $entities_info = get_entities_info($entities_ids, $entity_type);
+    $modified_dates = $entities_info['modified_dates'];
 
-    foreach ($items as $lead_id => $contacts_ids) {
+    foreach ($items as $entity_id => $contacts_ids) {
         $link_contacts_data_item = [
-            'id' => $lead_id,
-            'updated_at' => API_Helpers::update_last_modified($modified_dates[$lead_id]),
+            'id' => $entity_id,
+            'updated_at' => API_Helpers::update_last_modified($modified_dates[$entity_id]),
         ];
         foreach ($contacts_ids as $contact_id) {
             $link_contacts_data_item['contacts_id'][] = $contact_id;
@@ -244,29 +250,29 @@ function link_exist_contacts($items) {
     }
 
     $data = ['update' => $link_contacts_data];
-    $result = post_request('/api/v2/leads', $data);
+    $result = post_request('/api/v2/' . $entity_type, $data);
 
     return $result;
 }
 
-function get_leads_info($leads_ids) {
+function get_entities_info($entities_ids, $entity_type) {
     global $api;
     $modified_dates = [];
     $responsible_users = [];
 
-    $leads = $api->find('leads', ['id' => $leads_ids]);
+    $entities = $api->find($entity_type, ['id' => $entities_ids]);
 
-    foreach ($leads as $lead) {
-        $modified_dates[$lead['id']] = $lead['last_modified'];
-        $responsible_users[$lead['id']] = $lead['responsible_user_id'];
+    foreach ($entities as $entity) {
+        $modified_dates[$entity['id']] = $entity['last_modified'];
+        $responsible_users[$entity['id']] = $entity['responsible_user_id'];
     }
 
-    $leads_info = [
+    $entities_info = [
         'modified_dates' => $modified_dates,
         'responsible_users' => $responsible_users
     ];
 
-    return $leads_info;
+    return $entities_info;
 }
 
 function post_request($link, $data) {

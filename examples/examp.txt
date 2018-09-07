@@ -1,10 +1,3 @@
-file_put_contents("/var/www/sata/amolyakov/account/2.0/logs.html", "<pre>".var_export($interval,TRUE)."</pre><br>", FILE_APPEND);
---------------------------------------------------------
-
-10.4.0.4
-10.4.2.30
---------------------------------------------------------
-
 <b>Подробное описание пунктов чек-листа разработчика</b>
 http://wiki.amocrm.ru/pages/viewpage.action?pageId=14058671
 
@@ -31,11 +24,11 @@ http://wiki.amocrm.ru/pages/viewpage.action?pageId=14058671
 <b>a. PHPDoc у классов, методов и скриптов:</b>
 ок
 <b>b. Строгое сравнение строк (===):</b>
-нет
+да
 <b>c. Максимальная длина строки 120 сим.:</b>
 да
 <b>11. Тестирование перед отгрузкой</b>
-нет
+да
 <b>12. Дублирование кода – зло!</b>
 да
 <b>13. Не вешайте все на bitrix prolog. Если повесили – описать</b>
@@ -248,3 +241,26 @@ e. Проверка правок для второй версии сервиса
     errors.json
     error-request.json
 и проставление кастомного поля, переданного в параметре -f (id поля) в карточке сделок (для всех update-data.txt)
+
+if ($data['action'] === self::ACTION_USER_ADD) {
+                $data['action'] = self::QUEUE_FULL_SYNC_NAME;
+                $data['data'] = [];
+                $data['data'] = [
+                    [
+                        'id' => 958030,
+                        'email' => 'amolyakov@team.amocrm.com',
+                        'work_phone' => '8324532452',
+                        'mobile_phone' => '89023489583245',
+                        'accounts' => [
+                            17022838 => [
+                                'need_create' => true,
+                                'date_create' => time() - 100,
+                                'pay_type' => '',
+                            ],
+                        ],
+                        'name' => 'Tolyan',
+                        'date_register' => time() - 1000,
+                    ],
+                ];
+                $this->startSync($data, CustomerUpdateTool::AMO_SHARD_TYPE_COM);
+            }die();
