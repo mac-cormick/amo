@@ -1,0 +1,14 @@
+REG
+------------------------------------
+134.0.115.37
+Логин: root
+Пароль: C07Ypk6r!Y3ms7
+
+
+FB
+---------------------------------
+EAAEcSOcH5v0BALN8r82JLhhkTK6jcfRDb64zxIe0V5Yb9UAZADVudCqADiIz4mh2koF5mwUrZCcwgTqcmh6ycM4WIZBcnuHefEVZA8VFNXVpbT7OrU3mGXjqhMJ7cKL6B0ZADduBhIJ93iTjKviBix7XATEc45FeN7xNSyWowxyxyBbsIobYZCnTqH6424BZCoZD
+
+curl -X GET "vps.amotest.ru:1337/webhook?hub.verify_token=<YOUR_VERIFY_TOKEN>&hub.challenge=CHALLENGE_ACCEPTED&hub.mode=subscribe"
+
+curl -H "Content-Type: application/json" -X POST "vps.amotest.ru:1337/webhook" -d '{"object": "page", "entry": [{"messaging": [{"message": "TEST_MES"}]}]}'
