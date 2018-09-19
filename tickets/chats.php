@@ -32,13 +32,21 @@ CORE
 amolyakov-amojo-handle_messages
 ===============================
 app/cli/mvc/controllers/chats/messages_controller.php            function handle_messages
+
 app/cli/mvc/models/chats/messages_handler.php                    function handle_message
+
 
 amolyakov-amojo-handle_execute
 ==============================
 app/cli/mvc/controllers/chats/salesbot_controller.php            function handle_execute
 
+
 amolyakov-amojo-handle_salesbot
 ===============================
 app/cli/mvc/controllers/chats/messages_controller.php            function handle_salesbot
+
 app/cli/mvc/models/chats/salesbot/salesbot.php                   function process_reply
+app/cli/mvc/models/chats/salesbot/salesbot.php                   function bot_controller
+app/cli/mvc/models/chats/salesbot/salesbot.php                   function send_message
+
+app/libs/chats/amojo/api/amojo_api_client.php                    function send_bot_message
