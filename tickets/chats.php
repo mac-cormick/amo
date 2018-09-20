@@ -28,6 +28,7 @@ app/libs/mvc/controllers/api/v2/chats/bots/bots_controller.php  function action_
 
 CORE
 ---------------------------------
+---------------------------------
 
 amolyakov-amojo-handle_messages
 ===============================
@@ -50,3 +51,23 @@ app/cli/mvc/models/chats/salesbot/salesbot.php                   function bot_co
 app/cli/mvc/models/chats/salesbot/salesbot.php                   function send_message
 
 app/libs/chats/amojo/api/amojo_api_client.php                    function send_bot_message
+
+------------------------------------------------------------------------------
+пришлите телефон и email
+-------------------
+ответ - телефон
+
+app/cli/mvc/controllers/chats/messages_controller.php            function handle_messages
+
+app/cli/mvc/models/chats/messages_handler.php                    function handle_message
+                                                                 function handle_external_message
+                                                                 function push_contact_notification
+
+app/libs/notifications/helpers/notify_service.php                function send_background
+
+app/libs/chats/amojo/helpers/amojo_talks_helper.php              function handle_talk
+
+app/cli/mvc/models/chats/salesbot/salesbot.php                   function process_reply
+
+app/cli/mvc/models/chats/salesbot/salesbot.php                   function bot_controller
+

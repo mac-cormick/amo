@@ -1,0 +1,157 @@
+array (
+  'account' =>
+  array (
+    'id' => 17030296,
+  ),
+  'data' =>
+  array (
+    'priority' => 'low',
+    'event' => 'message',
+    'account' =>
+    array (
+      'id' => 'bf390b7d-8492-47cd-b5c3-5cc1246221db',
+      'sap_id' => '2ee2196e-b01d-11e8-a783-525400f24f69',
+    ),
+    'entry' =>
+    array (
+      0 =>
+      array (
+        'author' =>
+        array (
+          'admin' => false,
+          'avatar' => '',
+          'avatar_large' => '',
+          'bot' => true,
+          'full_name' => 'Amojo Bot',
+          'id' => 'c18d6317-6ca3-4a31-80bd-0b720d1b71fe',
+          'is_online' => false,
+          'name' => 'Amojo',
+          'origin' => 'bot',
+          'origin_profile' => '',
+          'sap_id' => '',
+          'second_name' => 'Bot',
+        ),
+        'callback_data' => '',
+        'chat_id' => '3fd93dba-2955-4f59-a231-f4804d5ec2fd',
+        'chat_type' => 0,
+        'created_at' => 1537455182,
+        'delivery_status' => 0,
+        'dialog' =>
+        array (
+          'id' => 11,
+          'opened' => false,
+        ),
+        'error_code' => 0,
+        'external_id' => '',
+        'group_id' => NULL,
+        'id' => '99aa6cfc-bbb1-4d2c-87d3-04707a46e981',
+        'message' =>
+        array (
+          'media' => '',
+          'media_200_200' => '',
+          'media_320_200' => '',
+          'media_file_name' => '',
+          'text' => 'РџРѕРґС‚РІРµСЂРґРёС‚Рµ Р’Р°С€Рё РґР°РЅРЅС‹Рµ',
+          'type' => 'text',
+        ),
+        'recipient' =>
+        array (
+          'admin' => false,
+          'avatar' => '',
+          'avatar_large' => '',
+          'bot' => false,
+          'full_name' => '2225668004172651',
+          'id' => '3cdcc456-2fdb-4fc7-9a57-3f3f6a6b4d20',
+          'is_online' => false,
+          'name' => '2225668004172651',
+          'origin' => 'facebook',
+          'origin_profile' => '',
+          'sap_id' => '',
+          'second_name' => '',
+        ),
+        'reply_markup' => NULL,
+        'silent' => true,
+        'source' =>
+        array (
+          'id' => '1680331522076691',
+          'origin' => 'facebook',
+        ),
+        'text' => 'РџРѕРґС‚РІРµСЂРґРёС‚Рµ Р’Р°С€Рё РґР°РЅРЅС‹Рµ',
+      ),
+    ),
+  ),
+)
+
+-----------------------------------------------------------------------
+ответил
+-----------------------------------------------------------------------
+
+array (
+  'account' =>
+  array (
+    'id' => 17030296,
+  ),
+  'data' =>
+  array (
+    'priority' => 'normal',
+    'event' => 'message',
+    'account' =>
+    array (
+      'id' => 'bf390b7d-8492-47cd-b5c3-5cc1246221db',
+      'sap_id' => '2ee2196e-b01d-11e8-a783-525400f24f69',
+    ),
+    'entry' =>
+    array (
+      0 =>
+      array (
+        'author' =>
+        array (
+          'admin' => false,
+          'avatar' => '',
+          'avatar_large' => '',
+          'bot' => false,
+          'full_name' => '2225668004172651',
+          'id' => '3cdcc456-2fdb-4fc7-9a57-3f3f6a6b4d20',
+          'is_online' => false,
+          'name' => '2225668004172651',
+          'origin' => 'facebook',
+          'origin_profile' => '',
+          'sap_id' => '',
+          'second_name' => '',
+        ),
+        'callback_data' => '',
+        'chat_id' => '3fd93dba-2955-4f59-a231-f4804d5ec2fd',
+        'chat_type' => 0,
+        'created_at' => 1537455259,
+        'delivery_status' => 0,
+        'dialog' =>
+        array (
+          'id' => 11,
+          'opened' => true,
+        ),
+        'error_code' => 0,
+        'external_id' => 'kcHIyWE07S0sG2I0rIIdEg08hqMVIXjzaQyHBZxltdyon3cQc6LkoQDW3wfIfg52Ox7De-5poX5J8GvJucp8OQ',
+        'group_id' => NULL,
+        'id' => '5e0b5ebf-f0d3-4223-a34e-a36104b091bb',
+        'message' =>
+        array (
+          'media' => '',
+          'media_200_200' => '',
+          'media_320_200' => '',
+          'media_file_name' => '',
+          'text' => 'tset',
+          'type' => 'text',
+        ),
+        'recipient' => NULL,
+        'reply_markup' => NULL,
+        'silent' => false,
+        'source' =>
+        array (
+          'id' => '1680331522076691',
+          'origin' => 'facebook',
+        ),
+        'text' => 'tset',
+      ),
+    ),
+  ),
+)

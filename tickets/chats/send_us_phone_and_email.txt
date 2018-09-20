@@ -1,0 +1,399 @@
+array (
+  'account' =>
+  array (
+    'id' => 17030296,
+  ),
+  'data' =>
+  array (
+    'priority' => 'low',
+    'event' => 'message',
+    'account' =>
+    array (
+      'id' => 'bf390b7d-8492-47cd-b5c3-5cc1246221db',
+      'sap_id' => '2ee2196e-b01d-11e8-a783-525400f24f69',
+    ),
+    'entry' =>
+    array (
+      0 =>
+      array (
+        'author' =>
+        array (
+          'admin' => false,
+          'avatar' => '',
+          'avatar_large' => '',
+          'bot' => true,
+          'full_name' => 'Amojo Bot',
+          'id' => 'c18d6317-6ca3-4a31-80bd-0b720d1b71fe',
+          'is_online' => false,
+          'name' => 'Amojo',
+          'origin' => 'bot',
+          'origin_profile' => '',
+          'sap_id' => '',
+          'second_name' => 'Bot',
+        ),
+        'callback_data' => '',
+        'chat_id' => '3fd93dba-2955-4f59-a231-f4804d5ec2fd',
+        'chat_type' => 0,
+        'created_at' => 1537454193,
+        'delivery_status' => 0,
+        'dialog' =>
+        array (
+          'id' => 11,
+          'opened' => false,
+        ),
+        'error_code' => 0,
+        'external_id' => '',
+        'group_id' => NULL,
+        'id' => 'd1ba6b9b-4ea5-4ce8-b628-a005650a14d5',
+        'message' =>
+        array (
+          'media' => '',
+          'media_200_200' => '',
+          'media_320_200' => '',
+          'media_file_name' => '',
+          'text' => 'РЎРѕРѕР±С‰РёС‚Рµ, РїРѕР¶Р°Р»СѓР№СЃС‚Р°, РІР°С€ РЅРѕРјРµСЂ С‚РµР»РµС„РѕРЅР° Рё e-mail',
+          'type' => 'text',
+        ),
+        'recipient' =>
+        array (
+          'admin' => false,
+          'avatar' => '',
+          'avatar_large' => '',
+          'bot' => false,
+          'full_name' => '2225668004172651',
+          'id' => '3cdcc456-2fdb-4fc7-9a57-3f3f6a6b4d20',
+          'is_online' => false,
+          'name' => '2225668004172651',
+          'origin' => 'facebook',
+          'origin_profile' => '',
+          'sap_id' => '',
+          'second_name' => '',
+        ),
+        'reply_markup' => NULL,
+        'silent' => true,
+        'source' =>
+        array (
+          'id' => '1680331522076691',
+          'origin' => 'facebook',
+        ),
+        'text' => 'РЎРѕРѕР±С‰РёС‚Рµ, РїРѕР¶Р°Р»СѓР№СЃС‚Р°, РІР°С€ РЅРѕРјРµСЂ С‚РµР»РµС„РѕРЅР° Рё e-mail',
+      ),
+    ),
+  ),
+)
+
+----------------------
+передал тел
+----------------------
+
+array (
+  'account' =>
+  array (
+    'id' => 17030296,
+  ),
+  'data' =>
+  array (
+    'priority' => 'normal',
+    'event' => 'message',
+    'account' =>
+    array (
+      'id' => 'bf390b7d-8492-47cd-b5c3-5cc1246221db',
+      'sap_id' => '2ee2196e-b01d-11e8-a783-525400f24f69',
+    ),
+    'entry' =>
+    array (
+      0 =>
+      array (
+        'author' =>
+        array (
+          'admin' => false,
+          'avatar' => '',
+          'avatar_large' => '',
+          'bot' => false,
+          'full_name' => '2225668004172651',
+          'id' => '3cdcc456-2fdb-4fc7-9a57-3f3f6a6b4d20',
+          'is_online' => false,
+          'name' => '2225668004172651',
+          'origin' => 'facebook',
+          'origin_profile' => '',
+          'sap_id' => '',
+          'second_name' => '',
+        ),
+        'callback_data' => '',
+        'chat_id' => '3fd93dba-2955-4f59-a231-f4804d5ec2fd',
+        'chat_type' => 0,
+        'created_at' => 1537454607,
+        'delivery_status' => 0,
+        'dialog' =>
+        array (
+          'id' => 11,
+          'opened' => true,
+        ),
+        'error_code' => 0,
+        'external_id' => 'NSJLXN-lD00UcdcaDtH8tQ08hqMVIXjzaQyHBZxltdxlRjgiPWKHzXkJTAY8AUPm0qKLKTIOZZbnf1W1yiXqPw',
+        'group_id' => NULL,
+        'id' => 'd1db846f-033c-4f88-b6b1-361858ffb110',
+        'message' =>
+        array (
+          'media' => '',
+          'media_200_200' => '',
+          'media_320_200' => '',
+          'media_file_name' => '',
+          'text' => '89265563363',
+          'type' => 'text',
+        ),
+        'recipient' => NULL,
+        'reply_markup' => NULL,
+        'silent' => false,
+        'source' =>
+        array (
+          'id' => '1680331522076691',
+          'origin' => 'facebook',
+        ),
+        'text' => '89265563363',
+      ),
+    ),
+  ),
+)
+------------------------------------------------------
+array (
+  'account' =>
+  array (
+    'id' => 17030296,
+  ),
+  'data' =>
+  array (
+    'priority' => 'low',
+    'event' => 'message',
+    'account' =>
+    array (
+      'id' => 'bf390b7d-8492-47cd-b5c3-5cc1246221db',
+      'sap_id' => '2ee2196e-b01d-11e8-a783-525400f24f69',
+    ),
+    'entry' =>
+    array (
+      0 =>
+      array (
+        'author' =>
+        array (
+          'admin' => false,
+          'avatar' => '',
+          'avatar_large' => '',
+          'bot' => true,
+          'full_name' => 'Amojo Bot',
+          'id' => 'c18d6317-6ca3-4a31-80bd-0b720d1b71fe',
+          'is_online' => false,
+          'name' => 'Amojo',
+          'origin' => 'bot',
+          'origin_profile' => '',
+          'sap_id' => '',
+          'second_name' => 'Bot',
+        ),
+        'callback_data' => '',
+        'chat_id' => '3fd93dba-2955-4f59-a231-f4804d5ec2fd',
+        'chat_type' => 0,
+        'created_at' => 1537454610,
+        'delivery_status' => 0,
+        'dialog' =>
+        array (
+          'id' => 11,
+          'opened' => false,
+        ),
+        'error_code' => 0,
+        'external_id' => '',
+        'group_id' => NULL,
+        'id' => '203f2918-a455-43e5-9ed2-61d3a5a84eda',
+        'message' =>
+        array (
+          'media' => '',
+          'media_200_200' => '',
+          'media_320_200' => '',
+          'media_file_name' => '',
+          'text' => 'РџСЂРёС€Р»РёС‚Рµ, РїРѕР¶Р°Р»СѓР№СЃС‚Р°, РІР°С€ e-mail',
+          'type' => 'text',
+        ),
+        'recipient' =>
+        array (
+          'admin' => false,
+          'avatar' => '',
+          'avatar_large' => '',
+          'bot' => false,
+          'full_name' => '2225668004172651',
+          'id' => '3cdcc456-2fdb-4fc7-9a57-3f3f6a6b4d20',
+          'is_online' => false,
+          'name' => '2225668004172651',
+          'origin' => 'facebook',
+          'origin_profile' => '',
+          'sap_id' => '',
+          'second_name' => '',
+        ),
+        'reply_markup' => NULL,
+        'silent' => true,
+        'source' =>
+        array (
+          'id' => '1680331522076691',
+          'origin' => 'facebook',
+        ),
+        'text' => 'РџСЂРёС€Р»РёС‚Рµ, РїРѕР¶Р°Р»СѓР№СЃС‚Р°, РІР°С€ e-mail',
+      ),
+    ),
+  ),
+)
+
+------------------------------------
+отправили email
+------------------------------------
+
+array (
+  'account' =>
+  array (
+    'id' => 17030296,
+  ),
+  'data' =>
+  array (
+    'priority' => 'normal',
+    'event' => 'message',
+    'account' =>
+    array (
+      'id' => 'bf390b7d-8492-47cd-b5c3-5cc1246221db',
+      'sap_id' => '2ee2196e-b01d-11e8-a783-525400f24f69',
+    ),
+    'entry' =>
+    array (
+      0 =>
+      array (
+        'author' =>
+        array (
+          'admin' => false,
+          'avatar' => '',
+          'avatar_large' => '',
+          'bot' => false,
+          'full_name' => '2225668004172651',
+          'id' => '3cdcc456-2fdb-4fc7-9a57-3f3f6a6b4d20',
+          'is_online' => false,
+          'name' => '2225668004172651',
+          'origin' => 'facebook',
+          'origin_profile' => '',
+          'sap_id' => '',
+          'second_name' => '',
+        ),
+        'callback_data' => '',
+        'chat_id' => '3fd93dba-2955-4f59-a231-f4804d5ec2fd',
+        'chat_type' => 0,
+        'created_at' => 1537454982,
+        'delivery_status' => 0,
+        'dialog' =>
+        array (
+          'id' => 11,
+          'opened' => true,
+        ),
+        'error_code' => 0,
+        'external_id' => 'AhFPeoDpvdPcdXK_eiMLoQ08hqMVIXjzaQyHBZxltdyngi8JDCCZ45osHl_D7gkjTIROGyTbRuGhSI8dEGsxjw',
+        'group_id' => NULL,
+        'id' => '78e926d9-9653-417b-bb8c-d3fd4c3e905a',
+        'message' =>
+        array (
+          'media' => '',
+          'media_200_200' => '',
+          'media_320_200' => '',
+          'media_file_name' => '',
+          'text' => 'test@test.ru',
+          'type' => 'text',
+        ),
+        'recipient' => NULL,
+        'reply_markup' => NULL,
+        'silent' => false,
+        'source' =>
+        array (
+          'id' => '1680331522076691',
+          'origin' => 'facebook',
+        ),
+        'text' => 'test@test.ru',
+      ),
+    ),
+  ),
+)
+-------------------------------------------------------------
+array (
+  'account' =>
+  array (
+    'id' => 17030296,
+  ),
+  'data' =>
+  array (
+    'priority' => 'low',
+    'event' => 'message',
+    'account' =>
+    array (
+      'id' => 'bf390b7d-8492-47cd-b5c3-5cc1246221db',
+      'sap_id' => '2ee2196e-b01d-11e8-a783-525400f24f69',
+    ),
+    'entry' =>
+    array (
+      0 =>
+      array (
+        'author' =>
+        array (
+          'admin' => false,
+          'avatar' => '',
+          'avatar_large' => '',
+          'bot' => true,
+          'full_name' => 'Amojo Bot',
+          'id' => 'c18d6317-6ca3-4a31-80bd-0b720d1b71fe',
+          'is_online' => false,
+          'name' => 'Amojo',
+          'origin' => 'bot',
+          'origin_profile' => '',
+          'sap_id' => '',
+          'second_name' => 'Bot',
+        ),
+        'callback_data' => '',
+        'chat_id' => '3fd93dba-2955-4f59-a231-f4804d5ec2fd',
+        'chat_type' => 0,
+        'created_at' => 1537454985,
+        'delivery_status' => 0,
+        'dialog' =>
+        array (
+          'id' => 11,
+          'opened' => false,
+        ),
+        'error_code' => 0,
+        'external_id' => '',
+        'group_id' => NULL,
+        'id' => '41c7e464-345e-4b92-a447-9b9435371b39',
+        'message' =>
+        array (
+          'media' => '',
+          'media_200_200' => '',
+          'media_320_200' => '',
+          'media_file_name' => '',
+          'text' => 'РџСЂРёС€Р»РёС‚Рµ, РїРѕР¶Р°Р»СѓР№СЃС‚Р°, РІР°С€ РЅРѕРјРµСЂ С‚РµР»РµС„РѕРЅР°',
+          'type' => 'text',
+        ),
+        'recipient' =>
+        array (
+          'admin' => false,
+          'avatar' => '',
+          'avatar_large' => '',
+          'bot' => false,
+          'full_name' => '2225668004172651',
+          'id' => '3cdcc456-2fdb-4fc7-9a57-3f3f6a6b4d20',
+          'is_online' => false,
+          'name' => '2225668004172651',
+          'origin' => 'facebook',
+          'origin_profile' => '',
+          'sap_id' => '',
+          'second_name' => '',
+        ),
+        'reply_markup' => NULL,
+        'silent' => true,
+        'source' =>
+        array (
+          'id' => '1680331522076691',
+          'origin' => 'facebook',
+        ),
+        'text' => 'РџСЂРёС€Р»РёС‚Рµ, РїРѕР¶Р°Р»СѓР№СЃС‚Р°, РІР°С€ РЅРѕРјРµСЂ С‚РµР»РµС„РѕРЅР°',
+      ),
+    ),
+  ),
+)

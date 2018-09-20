@@ -1,13 +1,14 @@
 <?php
+
+netsh interface ipv4 set dns "Беспроводная сеть" dhcp
+netsh interface ipv4 set dns "Беспроводная сеть" static 10.4.2.30
+netsh interface ipv4 show dnsservers "Беспроводная сеть"
+
 $.post("http://testavans.amolyakov.amocrm2.saas/ajax/contacts/merge/info", {"id":[1694284,1694283]});
 
 file_put_contents("/var/www/sata/amolyakov/account/2.0/logs.json", json_encode($param), FILE_APPEND);
 
 file_put_contents("/var/www/sata/amolyakov/account/2.0/logs.html", "<b>contacts - </b><br><pre>".var_export($filter,TRUE)."</pre><br><hr>", FILE_APPEND);
-
-PHASE
-------------------------------------------------------------------------------------------
-./bin/console customers:worker -r all -v
 
 
 
@@ -20,15 +21,6 @@ gearadmin --drop-function 'amolyakov|customers.sync_contacts_tasks'
 grep -rl 'main4' /var/www/sata/amolyakov/account/2.0/({*})
 $ grep -r 'CRM_DO_REPORT' /.
 
-https://docs.google.com/spreadsheets/d/1dcOut86z1Lfq8oEvzQ-MBFxPog3TnDTS5WPa7ETSW48/edit?usp=sharing
-
-рассылка
-
-netsh interface ipv4 set dns "Беспроводная сеть" dhcp
-netsh interface ipv4 set dns "Беспроводная сеть" static 10.4.2.30
-netsh interface ipv4 show dnsservers "Беспроводная сеть"
-
-http://amocrm2.saas/test_lead
 
 dmrodionov@team.amocrm.com
 d0de9e60172d0ace5a36bcc86e7db0d3
@@ -54,3 +46,25 @@ http://wbs.amocrm.ru/bitrix/admin/ticket_edit.php?ID=46016&lang=ru
 app/libs/triggers/service/handlers/amocrm/modules/customer_creator_module.php
 
 /usr/local/php7/bin/php ./bin/console customers:worker -r all -v
+
+[
+    {
+        "question": [
+            {
+                "handler": "show",
+                "params": {
+                    "type": "text",
+                    "value": "Подтвердите Ваши данные",
+                    "quick_replies":[
+                        {
+                          "content_type":"user_email"
+                        },
+                        {
+                          "content_type":"user_phone_number"
+                        }
+                    ]
+                }
+            }
+        ]
+    }
+]
