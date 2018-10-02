@@ -1,0 +1,392 @@
+[
+    {
+        "question": [
+            {
+                "handler": "show",
+                "params": {
+                    "type": "text",
+                    "value": "Сообщите, пожалуйста, ваш номер телефона и e-mail",
+                    "quick_replies":[
+                        "user_phone_number",
+                        "user_email"
+                    ]
+                }
+            }
+        ],
+        "answer": [
+            {
+                "handler": "preset",
+                "params": {
+                    "name": "contacts.validate_base_info",
+                    "params": {
+                        "empty_email": "Пришлите, пожалуйста, ваш e-mail",
+                        "empty_phone": "Пришлите, пожалуйста, ваш номер телефона",
+                        "invalid_phone": "Нам кажется, что в номере телефона ошибка",
+                        "success": "Спасибо",
+                        "empty_all": "Пришлите, пожалуйста, ваш номер телефона и e-mail"
+                    },
+                    "use_quick_replies": true
+                }
+            }
+        ]
+    }
+]
+
+---------------------------------------------------------------------------
+
+[
+    {
+        "question": [
+            {
+                "handler": "show",
+                "params": {
+                    "type": "text",
+                    "value": "Сообщите, пожалуйста, ваш номер телефона",
+                    "quick_replies":[
+                        "user_phone_number"
+                    ]
+                }
+            }
+        ],
+         "answer": [
+            {
+                "handler": "show",
+                "params": {
+                    "type": "text",
+                    "value": "Ваш номер телефона - {{message_text}}"
+                }
+            }
+        ]
+    }
+]
+
+----------------------------------------------------------------------------
+
+[
+    {
+        "question": [
+            {
+                "handler": "show",
+                "params": {
+                    "type": "text",
+                    "value": "Сообщите, пожалуйста, ваш номер телефона",
+                    "quick_replies":[
+                        "user_phone_number"
+                    ]
+                }
+            }
+        ],
+         "answer": [
+            {
+                "handler": "show",
+                "params": {
+                    "type": "text",
+                    "value": "{{message_text.phone}}"
+                }
+            }
+        ]
+    }
+]
+
+-----------------------------------------------------------------------------
+
+[
+    {
+        "question": [
+            {
+                "handler": "show",
+                "params": {
+                    "type": "text",
+                    "value": "Сообщите, пожалуйста, ваш номер телефона",
+                    "quick_replies":[
+                        "user_phone_number"
+                    ]
+                }
+            }
+        ],
+         "answer": [
+            {
+                "handler": "action",
+                "params": {
+                    "name": "set_custom_fields",
+                    "params": {
+                        "type": 1,
+                        "value": "{{message_text.phone}}",
+                        "custom_fields_id": 4422536
+                    }
+                }
+            },
+            {
+                "handler": "show",
+                "params": {
+                    "type": "text",
+                    "value": "Спасибо!"
+                }
+            }
+        ]
+    }
+]
+
+---------------------------------------------------------------------
+
+[
+    {
+        "question": [
+            {
+                "handler": "show",
+                "params": {
+                    "type": "text",
+                    "value": "Сообщите, пожалуйста, рабочий номер телефона"
+                }
+            }
+        ],
+         "answer": [
+            {
+                "handler": "action",
+                "params": {
+                    "name": "set_custom_fields",
+                    "params": {
+                        "type": 1,
+                        "value": "{{message_text.phone}}",
+                        "custom_fields_id": 4422536,
+                        "enum": "WORK"
+                    }
+                }
+            },
+            {
+                "handler": "goto",
+                "params": {
+                    "type": "question",
+                    "step": 1
+                }
+            }
+        ]
+    },
+    {
+        "question": [
+            {
+                "handler": "show",
+                "params": {
+                    "type": "text",
+                    "value": "Сообщите, пожалуйста, мобильный номер телефона"
+                }
+            }
+        ],
+         "answer": [
+            {
+                "handler": "show",
+                "params": {
+                    "type": "text",
+                    "value": "Спасибо"
+                }
+            }
+        ]
+    }
+]
+
+-------------------------------------------------------------------------
+
+[
+    {
+        "question": [
+            {
+                "handler": "show",
+                "params": {
+                    "type": "text",
+                    "value": "Сообщите, пожалуйста, рабочий номер телефона"
+                }
+            }
+        ],
+         "answer": [
+            {
+                "handler": "action",
+                "params": {
+                    "name": "set_custom_fields",
+                    "params": {
+                        "type": 1,
+                        "value": "{{message_text.phone}}",
+                        "custom_fields_id": 4422536,
+                        "enum": "WORK"
+                    }
+                }
+            },
+            {
+                "handler": "goto",
+                "params": {
+                    "type": "question",
+                    "step": 1
+                }
+            }
+        ]
+    },
+    {
+        "question": [
+            {
+                "handler": "show",
+                "params": {
+                    "type": "text",
+                    "value": "Сообщите, пожалуйста, мобильный номер телефона"
+                }
+            }
+        ],
+         "answer": [
+            {
+                "handler": "show",
+                "params": {
+                    "type": "text",
+                    "value": "из карточки контакта - {{contact.cf.4422536}}"
+                }
+            },
+            {
+                "handler": "show",
+                "params": {
+                    "type": "text",
+                    "value": "из сообщения - {{message_text.phone}}"
+                }
+            },
+            {
+              "handler": "condition",
+              "params": {
+                "term1": "{{contact.cf.4422536}}",
+                "term2": "{{message_text.phone}}",
+                "operation": "=",
+                "result": [
+                  {
+                    "handler": "goto",
+                    "params": {
+                        "type": "question",
+                        "step": 2
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "handler": "condition",
+              "params": {
+                "term1": "contact.cf.4422536",
+                "term2": "{{message_text.phone}}",
+                "operation": "!=",
+                "result": [
+                  {
+                    "handler": "action",
+                    "params": {
+                        "type": "text",
+                        "value": "Спасибо!"
+                    }
+                  }
+                ]
+              }
+            }
+        ]
+    },
+    {
+        "question": [
+            {
+                "handler": "show",
+                "params": {
+                    "type": "text",
+                    "value": "Этот номер уже указан. Введите заново"
+                }
+            }
+        ],
+         "answer": [
+            {
+                "handler": "goto",
+                "params": {
+                    "type": "answer",
+                    "step": 1
+                }
+            }
+        ]
+    }
+]
+
+-----------------------------------------------------------------------------
+
+[
+    {
+        "question": [
+            {
+                "handler": "show",
+                "params": {
+                    "type": "text",
+                    "value": "цена из карточки сделки - {{lead.price}}"
+                }
+            }
+        ]
+    }
+]
+
+------------------------------------------------------------------------------
+
+[
+  {
+    "question": [
+      {
+        "handler": "show",
+        "params": {
+          "type": "text",
+          "value": "Please enter your promo code"
+        }
+      }
+    ],
+    "answer": [
+      {
+        "handler": "find",
+        "params": {
+          "type": "catalog_elements",
+          "params":{
+            "value": "{{message_text}}",
+            "catalog_id": 5124,
+            "actions": [
+              {
+                "handler": "show",
+                "params": {
+                  "type": "text",
+                  "value": "OK"
+                }
+              },
+              {
+                "handler": "goto",
+                "params": {
+                  "type": "answer",
+                  "step": 2
+                }
+              }
+            ]
+          }
+        }
+      },
+      {
+        "handler": "goto",
+        "params": {
+          "type": "answer",
+          "step": 1
+        }
+      }
+    ]
+  },
+  {
+    "answer": [
+      {
+        "handler": "show",
+        "params": {
+          "type": "text",
+          "value": "NE OK"
+        }
+      }
+    ]
+  },
+  {
+    "answer": [
+      {
+        "handler": "show",
+        "params": {
+          "type": "text",
+          "value": "DONE"
+        }
+      }
+    ]
+  }
+]

@@ -71,3 +71,10 @@ app/cli/mvc/models/chats/salesbot/salesbot.php                   function proces
 
 app/cli/mvc/models/chats/salesbot/salesbot.php                   function bot_controller
 
+
+
+
+привет, решили расширить реализцию функционала быстрых ответов для фб. не знаю имеет ли ли это значение на стороне amojo. формат отсылаемых в amojo данных остается тем же, но использовать функционал можно будет для любого обработчика SHOW типа "text". в доке поправил
+
+возможность использования - обработчик SHOW типа “text”
+досылается параметр quick_replies на эндпоинт amojo /bots/xxxxxxxxxxxxxxx/messages в формате:

@@ -1,0 +1,632 @@
+{
+  "conversation": false,
+  "0":{
+    "question": [
+      {
+        "handler": "action",
+        "params": {
+          "name": "subscribe",
+          "params": {
+            "type": "group",
+            "value": 192707
+          }
+        }
+      },
+      {
+        "handler": "action",
+        "params": {
+          "name": "set_custom_fields",
+          "params": {
+            "type": 2,
+            "value": "{{rand}}",
+            "custom_fields_id": 1249468
+          }
+        }
+      },
+      {
+        "handler": "action",
+        "params": {
+          "name": "set_custom_fields",
+          "params": {
+            "type": 2,
+            "value": "{{short_rand}}",
+            "custom_fields_id": 1249480
+          }
+        }
+      },
+      {
+        "handler": "condition",
+        "params": {
+          "term1": "lead.tags",
+          "term2": "On",
+          "operation": "=",
+          "result": [
+            {
+              "handler": "action",
+              "params": {
+                "name": "set_custom_fields",
+                "params": {
+                  "type": 2,
+                  "value": 2954713,
+                  "custom_fields_id": 1249819
+                }
+              }
+            },
+            {
+              "handler": "action",
+              "params": {
+                "name": "unset_tag",
+                "params": {
+                  "type": 2,
+                  "value": "On"
+                }
+              }
+            },
+            {
+              "handler": "action",
+              "params": {
+                "name": "set_tag",
+                "params": {
+                  "type": 2,
+                  "value": "online"
+                }
+              }
+            },
+            {
+              "handler": "goto",
+              "params": {
+                "type": "question",
+                "step": 4
+              }
+            }
+          ]
+        }
+      },
+      {
+        "handler": "condition",
+        "params": {
+          "term1": "lead.tags",
+          "term2": "Ft",
+          "operation": "=",
+          "result": [
+            {
+              "handler": "action",
+              "params": {
+                "name": "set_custom_fields",
+                "params": {
+                  "type": 2,
+                  "value": 2954711,
+                  "custom_fields_id": 1249819
+                }
+              }
+            },
+            {
+              "handler": "action",
+              "params": {
+                "name": "set_custom_fields",
+                "params": {
+                  "type": 2,
+                  "value": 349,
+                  "custom_fields_id": 1249835
+                }
+              }
+            },
+            {
+              "handler": "action",
+              "params": {
+                "name": "unset_tag",
+                "params": {
+                  "type": 2,
+                  "value": "Ft"
+                }
+              }
+            },
+            {
+              "handler": "goto",
+              "params": {
+                "type": "question",
+                "step": 1
+              }
+            }
+          ]
+        }
+      },
+      {
+        "handler": "condition",
+        "params": {
+          "term1": "{{lead.cf.1249682}}",
+          "term2": "",
+          "operation": "!=",
+          "result": [
+            {
+              "handler": "action",
+              "params": {
+                "name": "set_custom_fields",
+                "params": {
+                  "type": 2,
+                  "value": 2954711,
+                  "custom_fields_id": 1249819
+                }
+              }
+            },
+            {
+              "handler": "action",
+              "params": {
+                "name": "set_custom_fields",
+                "params": {
+                  "type": 2,
+                  "value": 349,
+                  "custom_fields_id": 1249835
+                }
+              }
+            },
+            {
+              "handler": "goto",
+              "params": {
+                "type": "question",
+                "step": 4
+              }
+            }
+          ]
+        }
+      },
+      {
+        "handler": "condition",
+        "params": {
+          "term1": "{{lead.cf.1249819}}",
+          "term2": "General",
+          "operation": "=",
+          "result": [
+            {
+              "handler": "action",
+              "params": {
+                "name": "set_custom_fields",
+                "params": {
+                  "type": 2,
+                  "value": 349,
+                  "custom_fields_id": 1249835
+                }
+              }
+            },
+            {
+              "handler": "condition",
+              "params": {
+                "term1": "{{lead.cf.1249682}}",
+                "term2": "",
+                "operation": "!=",
+                "result": [
+                  {
+                    "handler": "goto",
+                    "params": {
+                      "type": "question",
+                      "step": 4
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "handler": "goto",
+              "params": {
+                "type": "question",
+                "step": 1
+              }
+            }
+          ]
+        }
+      },
+      {
+        "handler": "condition",
+        "params": {
+          "term1": "{{lead.cf.1249819}}",
+          "term2": "Online",
+          "operation": "=",
+          "result": [
+            {
+              "handler": "action",
+              "params": {
+                "name": "set_tag",
+                "params": {
+                  "type": 2,
+                  "value": "online"
+                }
+              }
+            },
+            {
+              "handler": "goto",
+              "params": {
+                "type": "question",
+                "step": 4
+              }
+            }
+          ]
+        }
+      },
+      {
+        "handler": "show",
+        "params": {
+          "type": "buttons",
+          "value": "How will you attend amoCONF?",
+          "buttons": [
+            "In Person",
+            "Online"
+          ]
+        }
+      }
+    ],
+    "answer": [
+      {
+        "handler": "buttons",
+        "params": [
+          {
+            "regex": "/Online/iu",
+            "params": [
+              {
+                "handler": "action",
+                "params": {
+                  "name": "set_custom_fields",
+                  "params": {
+                    "type": 2,
+                    "value": 2954713,
+                    "custom_fields_id": 1249819
+                  }
+                }
+              },
+              {
+                "handler": "action",
+                "params": {
+                  "name": "set_tag",
+                  "params": {
+                    "type": 2,
+                    "value": "online"
+                  }
+                }
+              },
+              {
+                "handler": "goto",
+                "params": {
+                  "type": "question",
+                  "step": 4
+                }
+              }
+            ]
+          },
+          {
+            "regex": "/In Person/iu",
+            "params": [
+              {
+                "handler": "action",
+                "params": {
+                  "name": "set_custom_fields",
+                  "params": {
+                    "type": 2,
+                    "value": 2954711,
+                    "custom_fields_id": 1249819
+                  }
+                }
+              },
+              {
+                "handler": "action",
+                "params": {
+                  "name": "set_custom_fields",
+                  "params": {
+                    "type": 2,
+                    "value": 349,
+                    "custom_fields_id": 1249835
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "type": "else",
+            "params": [
+              {
+                "handler": "goto",
+                "params": {
+                  "type": "answer",
+                  "step": 4
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "1":{
+    "question": [
+      {
+        "handler": "condition",
+        "params": {
+          "term1": "{{lead.cf.1249682}}",
+          "term2": "",
+          "operation": "!=",
+          "result": [
+            {
+              "handler": "goto",
+              "params": {
+                "type": "question",
+                "step": 4
+              }
+            }
+          ]
+        }
+      },
+      {
+        "handler": "show",
+        "params": {
+          "type": "buttons",
+          "value": "Do you have a promo code?",
+          "buttons": [
+            "Yes, I do",
+            "No, I don't"
+          ]
+        }
+      }
+    ],
+    "answer": [
+      {
+        "handler": "buttons",
+        "params": [
+          {
+            "regex": "/(Yes|yes|Yes, I do)/iu",
+            "params": [
+              {
+                "handler": "goto",
+                "params": {
+                  "type": "question",
+                  "step": 2
+                }
+              }
+            ]
+          },
+          {
+            "regex": "/(No|no|No, I don't)/iu",
+            "params": [
+              {
+                "handler": "goto",
+                "params": {
+                  "type": "question",
+                  "step": 4
+                }
+              }
+            ]
+          },
+          {
+            "type": "else",
+            "params": [
+              {
+                "handler": "goto",
+                "params": {
+                  "type": "answer",
+                  "step": 2
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "2":{
+    "question": [
+      {
+        "handler": "show",
+        "params": {
+          "type": "text",
+          "value": "Please enter your promo code"
+        }
+      }
+    ],
+    "answer": [
+      {
+        "handler": "find",
+        "params": {
+          "type": "catalog_elements",
+          "params":{
+            "value": "{{message_text}}",
+            "catalog_id": 1027,
+            "actions": [
+              {
+                "handler": "action",
+                "params": {
+                  "name": "link",
+                  "params": {
+                    "from": 2,
+                    "to": 11,
+                    "to_id": "{{founded_id}}",
+                    "to_catalog_id": 1027
+                  }
+                }
+              },
+              {
+                "handler": "action",
+                "params": {
+                  "name": "set_custom_fields",
+                  "params": {
+                    "type": 2,
+                    "value": "{{lead.cf.1249835}} - 349",
+                    "custom_fields_id": 1249835,
+                    "calculated": true
+                  }
+                }
+              },
+              {
+                "handler": "action",
+                "params": {
+                  "name": "set_custom_fields",
+                  "params": {
+                    "type": 2,
+                    "value": "{{message_text}}",
+                    "custom_fields_id": 1249682
+                  }
+                }
+              },
+              {
+                "handler": "goto",
+                "params": {
+                  "type": "question",
+                  "step": 5
+                }
+              }
+            ]
+          }
+        }
+      },
+      {
+        "handler": "goto",
+        "params": {
+          "type": "question",
+          "step": 3
+        }
+      }
+    ]
+  },
+  "3":{
+    "question": [
+      {
+        "handler": "show",
+        "params": {
+          "type": "buttons",
+          "value": "We can't find this promo code. Want to try again?",
+          "buttons": [
+            "Yes",
+            "No"
+          ]
+        }
+      }
+    ],
+    "answer": [
+      {
+        "handler": "buttons",
+        "params": [
+          {
+            "regex": "/(yes|I want|Yes, I do)/iu",
+            "params": [
+              {
+                "handler": "goto",
+                "params": {
+                  "type": "question",
+                  "step": 2
+                }
+              }
+            ]
+          },
+          {
+            "regex": "/(no|No, I don't)/iu",
+            "params": [
+              {
+                "handler": "goto",
+                "params": {
+                  "type": "question",
+                  "step": 4
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "4":{
+    "question": [
+      {
+        "handler": "condition",
+        "params": {
+          "term1": "{{lead.cf.1249682}}",
+          "term2": "",
+          "operation": "!=",
+          "result": [
+            {
+              "handler": "find",
+              "params": {
+                "type": "catalog_elements",
+                "params":{
+                  "value": "{{lead.cf.1249682}}",
+                  "catalog_id": 1027,
+                  "actions": [
+                    {
+                      "handler": "action",
+                      "params": {
+                        "name": "link",
+                        "params": {
+                          "from": 2,
+                          "to": 11,
+                          "to_id": "{{founded_id}}",
+                          "to_catalog_id": 1027
+                        }
+                      }
+                    },
+                    {
+                      "handler": "action",
+                      "params": {
+                        "name": "set_custom_fields",
+                        "params": {
+                          "type": 2,
+                          "value": "{{lead.cf.1249835}} - 349",
+                          "custom_fields_id": 1249835,
+                          "calculated": true
+                        }
+                      }
+                    },
+                    {
+                      "handler": "goto",
+                      "params": {
+                        "type": "question",
+                        "step": 5
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
+        "handler": "goto",
+        "params": {
+          "type": "question",
+          "step": 5
+        }
+      }
+    ]
+  },
+  "5":{
+    "question": [
+      {
+        "handler": "condition",
+        "params": {
+          "term1": "{{lead.cf.1249835}}",
+          "term2": "-349",
+          "operation": "=",
+          "result": [
+            {
+              "handler": "action",
+              "params": {
+                "name": "set_custom_fields",
+                "params": {
+                  "type": 2,
+                  "value": "0",
+                  "custom_fields_id": 1249835,
+                  "calculated": true
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
+        "handler": "action",
+        "params": {
+          "name": "change_status",
+          "params": {
+            "value": 21381959
+          }
+        }
+      }
+    ],
+    "answer": []
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "conversation": false,
+  "0": {
+    "question": [
+      {
+        "handler": "condition",
+        "params": {
+          "term1": "{{lead.price}}",
+          "term2": "",
+          "operation": "=",
+          "result": [
+            {
+              "handler": "send_internal",
+              "params": {
+                "entity_id": "{{lead.id}}",
+                "entity_type": 2,
+                "message": "Registration ERROR! Budget is empty"
+              }
+            },
+            {
+              "handler": "goto",
+              "params": {
+                "type": "question",
+                "step": 1
+              }
+            }
+          ]
+        }
+      },
+      {
+        "handler": "condition",
+        "params": {
+          "term1": "{{lead.price}}",
+          "term2": "0",
+          "operation": "=",
+          "result": [
+            {
+              "handler": "send_internal",
+              "params": {
+                "entity_id": "{{lead.id}}",
+                "entity_type": 2,
+                "message": "Registration ERROR! Budget is empty"
+              }
+            },
+            {
+              "handler": "goto",
+              "params": {
+                "type": "question",
+                "step": 1
+              }
+            }
+          ]
+        }
+      },
+      {
+        "handler": "pay",
+        "params": {
+          "message": "Your order amount: ${{lead.price}}",
+          "button_title": "Pay",
+          "pay_url": "{{lead.cf.1268351}}"
+        }
+      }
+    ],
+    "answer": []
+  }
+}
