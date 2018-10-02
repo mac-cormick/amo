@@ -78,9 +78,47 @@
         }
       },
       {
+        "handler": "condition",
+        "params": {
+          "term1": "{{lead.cf.1249682}}",
+          "term2": "",
+          "operation": "!=",
+          "result": [
+            {
+              "handler": "find",
+              "params": {
+                "type": "catalog_elements",
+                "params":{
+                  "catalog_id": 1027,
+                  "type": "name",
+                  "value": "{{lead.cf.1249682}}",
+                  "actions": [
+                    {
+                      "handler": "pay",
+                      "params": {
+                        "message": "Promo code applied: {{lead.cf.1249682}}. Your order amount: ${{lead.price}}",
+                        "button_title": "Pay",
+                        "pay_url": "{{lead.cf.1268351}}"
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "handler": "goto",
+              "params": {
+                "type": "question",
+                "step": 1
+              }
+            }
+          ]
+        }
+      },
+      {
         "handler": "pay",
         "params": {
-          "message": "Promo code applied: {{lead.cf.1249682}}. Your order amount: ${{lead.price}}",
+          "message": "Your order amount: ${{lead.price}}",
           "button_title": "Pay",
           "pay_url": "{{lead.cf.1268351}}"
         }
